@@ -320,9 +320,65 @@ export default function Research() {
           ) : (
             <div className="space-y-6">
               <Card className="p-8 bg-white shadow-xl" data-testid="research-results">
-                <h2 className="text-2xl font-bold text-slate-900 mb-6">Research Results</h2>
+                <h2 className="text-2xl font-bold text-slate-900 mb-6">AI-Powered Research Results</h2>
                 
                 <div className="space-y-6">
+                  {/* Financial Snapshot */}
+                  {results.financial_snapshot && (
+                    <div className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                      <h3 className="font-semibold text-lg text-slate-900 mb-4">📊 Financial Snapshot</h3>
+                      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                        <div>
+                          <div className="text-xs text-slate-600 mb-1">Market Cap</div>
+                          <div className="text-sm font-semibold text-slate-900">
+                            {typeof results.financial_snapshot.market_cap === 'number' 
+                              ? `$${(results.financial_snapshot.market_cap / 1e9).toFixed(1)}B`
+                              : results.financial_snapshot.market_cap}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-xs text-slate-600 mb-1">Revenue</div>
+                          <div className="text-sm font-semibold text-slate-900">
+                            {typeof results.financial_snapshot.revenue === 'number'
+                              ? `$${(results.financial_snapshot.revenue / 1e9).toFixed(1)}B`
+                              : results.financial_snapshot.revenue}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-xs text-slate-600 mb-1">Employees</div>
+                          <div className="text-sm font-semibold text-slate-900">{results.financial_snapshot.employees}</div>
+                        </div>
+                        <div>
+                          <div className="text-xs text-slate-600 mb-1">Stock Price</div>
+                          <div className="text-sm font-semibold text-slate-900">${results.financial_snapshot.stock_price}</div>
+                        </div>
+                        <div>
+                          <div className="text-xs text-slate-600 mb-1">Change</div>
+                          <div className={`text-sm font-semibold ${
+                            results.financial_snapshot.price_change?.includes('-') ? 'text-red-600' : 'text-green-600'
+                          }`}>
+                            {results.financial_snapshot.price_change}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Recent News */}
+                  {results.recent_news && results.recent_news.length > 0 && (
+                    <div>
+                      <h3 className="font-semibold text-lg text-slate-900 mb-3">📰 Recent News</h3>
+                      <div className="space-y-2">
+                        {results.recent_news.map((article, idx) => (
+                          <div key={idx} className="p-3 bg-slate-50 rounded border border-slate-200">
+                            <div className="text-sm font-medium text-slate-900">{article.title}</div>
+                            <div className="text-xs text-slate-500 mt-1">{article.date}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   <div className="grid md:grid-cols-2 gap-4">
                     <div className="p-4 bg-blue-50 rounded-lg">
                       <p className="text-sm text-blue-600 font-medium mb-1">Vendor</p>
