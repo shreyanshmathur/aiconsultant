@@ -323,65 +323,10 @@ export default function Research() {
                 <h2 className="text-2xl font-bold text-slate-900 mb-6">AI-Powered Research Results</h2>
                 
                 <div className="space-y-6">
-                  {/* Financial Snapshot */}
-                  {results.financial_snapshot && (
-                    <div className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
-                      <h3 className="font-semibold text-lg text-slate-900 mb-4">📊 Financial Snapshot</h3>
-                      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                        <div>
-                          <div className="text-xs text-slate-600 mb-1">Market Cap</div>
-                          <div className="text-sm font-semibold text-slate-900">
-                            {typeof results.financial_snapshot.market_cap === 'number' 
-                              ? `$${(results.financial_snapshot.market_cap / 1e9).toFixed(1)}B`
-                              : results.financial_snapshot.market_cap}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-xs text-slate-600 mb-1">Revenue</div>
-                          <div className="text-sm font-semibold text-slate-900">
-                            {typeof results.financial_snapshot.revenue === 'number'
-                              ? `$${(results.financial_snapshot.revenue / 1e9).toFixed(1)}B`
-                              : results.financial_snapshot.revenue}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-xs text-slate-600 mb-1">Employees</div>
-                          <div className="text-sm font-semibold text-slate-900">{results.financial_snapshot.employees}</div>
-                        </div>
-                        <div>
-                          <div className="text-xs text-slate-600 mb-1">Stock Price</div>
-                          <div className="text-sm font-semibold text-slate-900">${results.financial_snapshot.stock_price}</div>
-                        </div>
-                        <div>
-                          <div className="text-xs text-slate-600 mb-1">Change</div>
-                          <div className={`text-sm font-semibold ${
-                            results.financial_snapshot.price_change?.includes('-') ? 'text-red-600' : 'text-green-600'
-                          }`}>
-                            {results.financial_snapshot.price_change}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Recent News */}
-                  {results.recent_news && results.recent_news.length > 0 && (
-                    <div>
-                      <h3 className="font-semibold text-lg text-slate-900 mb-3">📰 Recent News</h3>
-                      <div className="space-y-2">
-                        {results.recent_news.map((article, idx) => (
-                          <div key={idx} className="p-3 bg-slate-50 rounded border border-slate-200">
-                            <div className="text-sm font-medium text-slate-900">{article.title}</div>
-                            <div className="text-xs text-slate-500 mt-1">{article.date}</div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
+                  {/* Primary Vendor Info */}
                   <div className="grid md:grid-cols-2 gap-4">
                     <div className="p-4 bg-blue-50 rounded-lg">
-                      <p className="text-sm text-blue-600 font-medium mb-1">Vendor</p>
+                      <p className="text-sm text-blue-600 font-medium mb-1">Primary Vendor</p>
                       <p className="text-xl font-bold text-slate-900">{results.vendor_name}</p>
                     </div>
                     <div className="p-4 bg-purple-50 rounded-lg">
@@ -390,33 +335,144 @@ export default function Research() {
                     </div>
                   </div>
 
-                  {results.suggested_vendors && results.suggested_vendors.length > 1 && (
-                    <div>
-                      <h3 className="font-semibold text-slate-900 mb-3">Suggested Vendors</h3>
-                      <div className="flex flex-wrap gap-2">
-                        {results.suggested_vendors.map((vendor, idx) => (
-                          <span key={idx} className="px-4 py-2 bg-slate-100 text-slate-700 rounded-full text-sm">
-                            {vendor}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  <div>
-                    <h3 className="font-semibold text-slate-900 mb-3">Analysis</h3>
+                  {/* Market Position Analysis */}
+                  <div className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                    <h3 className="font-semibold text-lg text-slate-900 mb-3">📊 Market Position</h3>
                     <p className="text-slate-700 leading-relaxed">
                       {results.analysis?.market_position}
                     </p>
                   </div>
 
-                  {results.analysis?.key_capabilities && (
+                  {/* Vendor Comparison Section */}
+                  {results.vendor_comparison && Object.keys(results.vendor_comparison).length > 0 && (
+                    <div>
+                      <h3 className="font-bold text-xl text-slate-900 mb-4">🏆 Vendor Comparison</h3>
+                      
+                      {/* Winner Banner */}
+                      {results.recommended_vendor && (
+                        <div className="mb-6 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200">
+                          <div className="flex items-center gap-3">
+                            <div className="text-3xl">🥇</div>
+                            <div>
+                              <p className="text-sm text-green-600 font-medium">Recommended Vendor</p>
+                              <p className="text-xl font-bold text-slate-900">{results.recommended_vendor}</p>
+                              {results.recommendation_reason && (
+                                <p className="text-sm text-slate-600 mt-1">{results.recommendation_reason}</p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Comparison Table */}
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="bg-slate-100">
+                              <th className="px-4 py-3 text-left font-semibold text-slate-700">Vendor</th>
+                              <th className="px-4 py-3 text-center font-semibold text-slate-700">Score</th>
+                              <th className="px-4 py-3 text-center font-semibold text-slate-700">Features</th>
+                              <th className="px-4 py-3 text-center font-semibold text-slate-700">Pricing</th>
+                              <th className="px-4 py-3 text-center font-semibold text-slate-700">Ease of Use</th>
+                              <th className="px-4 py-3 text-center font-semibold text-slate-700">Support</th>
+                              <th className="px-4 py-3 text-left font-semibold text-slate-700">Best For</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {Object.entries(results.vendor_comparison)
+                              .sort((a, b) => (b[1].total_score || 0) - (a[1].total_score || 0))
+                              .map(([vendorName, data], idx) => (
+                                <tr key={vendorName} className={`border-b border-slate-100 ${idx === 0 ? 'bg-green-50' : ''}`}>
+                                  <td className="px-4 py-3">
+                                    <div className="flex items-center gap-2">
+                                      {idx === 0 && <span className="text-lg">🥇</span>}
+                                      {idx === 1 && <span className="text-lg">🥈</span>}
+                                      {idx === 2 && <span className="text-lg">🥉</span>}
+                                      <span className="font-medium text-slate-900">{vendorName}</span>
+                                    </div>
+                                  </td>
+                                  <td className="px-4 py-3 text-center">
+                                    <span className={`px-2 py-1 rounded-full text-xs font-bold ${
+                                      (data.total_score || 0) >= 8 ? 'bg-green-100 text-green-700' :
+                                      (data.total_score || 0) >= 7 ? 'bg-blue-100 text-blue-700' :
+                                      'bg-amber-100 text-amber-700'
+                                    }`}>
+                                      {(data.total_score || 0).toFixed(1)}
+                                    </span>
+                                  </td>
+                                  <td className="px-4 py-3 text-center">{data.scores?.features?.toFixed(1) || '-'}</td>
+                                  <td className="px-4 py-3 text-center">{data.scores?.pricing?.toFixed(1) || '-'}</td>
+                                  <td className="px-4 py-3 text-center">{data.scores?.ease_of_use?.toFixed(1) || '-'}</td>
+                                  <td className="px-4 py-3 text-center">{data.scores?.support?.toFixed(1) || '-'}</td>
+                                  <td className="px-4 py-3 text-xs text-slate-600">{data.best_for || '-'}</td>
+                                </tr>
+                              ))}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      {/* Detailed Vendor Cards */}
+                      <div className="mt-6 grid md:grid-cols-2 gap-4">
+                        {Object.entries(results.vendor_comparison)
+                          .sort((a, b) => (b[1].total_score || 0) - (a[1].total_score || 0))
+                          .slice(0, 4)
+                          .map(([vendorName, data], idx) => (
+                            <div key={vendorName} className={`p-4 rounded-lg border ${idx === 0 ? 'border-green-200 bg-green-50' : 'border-slate-200 bg-white'}`}>
+                              <div className="flex justify-between items-start mb-3">
+                                <h4 className="font-bold text-slate-900">{vendorName}</h4>
+                                <span className={`px-2 py-1 rounded-full text-xs font-bold ${
+                                  (data.total_score || 0) >= 8 ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
+                                }`}>
+                                  {(data.total_score || 0).toFixed(1)}/10
+                                </span>
+                              </div>
+                              
+                              {data.strengths && data.strengths.length > 0 && (
+                                <div className="mb-3">
+                                  <p className="text-xs font-semibold text-green-600 mb-1">Strengths:</p>
+                                  <ul className="text-xs text-slate-600 space-y-1">
+                                    {data.strengths.slice(0, 3).map((s, i) => (
+                                      <li key={i} className="flex items-start gap-1">
+                                        <span className="text-green-500">✓</span> {s}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                              
+                              {data.weaknesses && data.weaknesses.length > 0 && (
+                                <div>
+                                  <p className="text-xs font-semibold text-red-600 mb-1">Considerations:</p>
+                                  <ul className="text-xs text-slate-600 space-y-1">
+                                    {data.weaknesses.slice(0, 2).map((w, i) => (
+                                      <li key={i} className="flex items-start gap-1">
+                                        <span className="text-red-500">•</span> {w}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                              
+                              {data.pricing_tier && (
+                                <div className="mt-3 pt-2 border-t border-slate-200">
+                                  <span className="text-xs text-slate-500">Pricing: </span>
+                                  <span className="text-xs font-medium text-slate-700">{data.pricing_tier}</span>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Key Capabilities */}
+                  {results.analysis?.key_capabilities && results.analysis.key_capabilities.length > 0 && (
                     <div>
                       <h3 className="font-semibold text-slate-900 mb-3">Key Capabilities</h3>
                       <ul className="space-y-2">
                         {results.analysis.key_capabilities.map((cap, idx) => (
                           <li key={idx} className="flex items-start gap-2 text-slate-700">
-                            <div className="w-1.5 h-1.5 rounded-full bg-green-500 mt-2" />
+                            <div className="w-1.5 h-1.5 rounded-full bg-green-500 mt-2 flex-shrink-0" />
                             {cap}
                           </li>
                         ))}
@@ -424,13 +480,31 @@ export default function Research() {
                     </div>
                   )}
 
-                  {results.recommendations && (
+                  {/* Recommendations */}
+                  {results.recommendations && results.recommendations.length > 0 && (
                     <div>
-                      <h3 className="font-semibold text-slate-900 mb-3">Recommendations</h3>
+                      <h3 className="font-semibold text-slate-900 mb-3">Strategic Recommendations</h3>
                       <div className="space-y-3">
                         {results.recommendations.map((rec, idx) => (
-                          <div key={idx} className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                            <p className="text-slate-700">{rec}</p>
+                          <div key={idx} className="p-4 bg-amber-50 border-l-4 border-amber-400 rounded-r-lg">
+                            <div className="flex items-start gap-3">
+                              <span className="text-amber-600 font-bold">{idx + 1}.</span>
+                              <p className="text-slate-700">{rec}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Considerations/Risks */}
+                  {results.analysis?.considerations && results.analysis.considerations.length > 0 && (
+                    <div>
+                      <h3 className="font-semibold text-slate-900 mb-3">Considerations & Risks</h3>
+                      <div className="space-y-2">
+                        {results.analysis.considerations.map((item, idx) => (
+                          <div key={idx} className="p-3 bg-red-50 border-l-4 border-red-300 rounded-r-lg">
+                            <p className="text-sm text-slate-700">⚠️ {item}</p>
                           </div>
                         ))}
                       </div>
