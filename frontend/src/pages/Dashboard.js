@@ -1,115 +1,119 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import { motion } from 'framer-motion';
 import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
-import { Search, Users, Database, Sparkles, ChevronRight, BarChart3, FileText } from 'lucide-react';
+import { Search, Users, Database, Sparkles, ArrowRight, FileText, TrendingUp } from 'lucide-react';
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const [selectedMode, setSelectedMode] = useState(null);
+  const { user } = useAuth();
 
   const modes = [
     {
       id: 'research',
       title: 'Research Mode',
-      description: 'AI-powered vendor analysis and market intelligence',
+      description: 'AI-powered vendor analysis with multi-vendor comparison and scoring',
       icon: Search,
-      features: ['Auto vendor discovery', 'Competitor analysis', 'Market insights'],
-      gradient: 'from-blue-50 to-indigo-50',
-      iconColor: 'text-blue-600',
-      borderColor: 'border-blue-200'
+      features: ['Auto vendor discovery', 'Competitor analysis', 'Scoring & rankings'],
+      gradient: 'from-blue-500/20 to-cyan-500/20',
+      iconBg: 'from-blue-500 to-cyan-500',
+      path: '/research'
     },
     {
-      id: 'full-consulting',
-      title: 'Full Consulting',
-      description: '8 AI consultants collaborate on your challenge',
+      id: 'consulting',
+      title: 'Conference Room',
+      description: '8 AI consultants collaborate and debate your business challenges',
       icon: Users,
-      features: ['Multi-agent debate', 'Strategic recommendations', 'Complete deliverables'],
-      gradient: 'from-purple-50 to-pink-50',
-      iconColor: 'text-purple-600',
-      borderColor: 'border-purple-200'
+      features: ['Multi-agent debate', 'Strategic synthesis', 'Action roadmap'],
+      gradient: 'from-purple-500/20 to-pink-500/20',
+      iconBg: 'from-purple-500 to-pink-500',
+      path: '/consulting'
     }
   ];
 
-  const stats = [
-    { value: '8', label: 'AI Consultants', icon: Users },
-    { value: '50+', label: 'Data Sources', icon: Database },
-    { value: '3', label: 'Debate Rounds', icon: BarChart3 },
-    { value: '100%', label: 'Free to Use', icon: Sparkles }
+  const quickActions = [
+    { icon: FileText, label: 'View Deliverables', path: '/deliverables', color: 'text-emerald-500' },
+    { icon: TrendingUp, label: 'New Research', path: '/research', color: 'text-blue-500' },
+    { icon: Users, label: 'Start Debate', path: '/consulting', color: 'text-purple-500' }
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="max-w-7xl mx-auto"
-        >
-          {/* Header */}
-          <div className="text-center mb-12">
+    <div className="min-h-screen bg-background">
+      {/* Hero Section */}
+      <section className="relative py-12 lg:py-20 hero-glow">
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 via-purple-500/5 to-transparent dark:from-blue-600/10 dark:via-purple-500/10" />
+        
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="max-w-4xl mx-auto text-center mb-12"
+          >
+            {/* Welcome message */}
             <motion.div
-              initial={{ scale: 0.9 }}
-              animate={{ scale: 1 }}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full shadow-sm mb-6 border border-slate-200"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.1 }}
+              className="inline-flex items-center gap-2 px-4 py-2 glass-card mb-6"
             >
               <Sparkles className="w-4 h-4 text-amber-500" />
-              <span className="text-sm font-medium text-slate-700">Powered by 8 Specialized AI Agents</span>
+              <span className="text-sm font-medium text-muted-foreground">
+                {user ? `Welcome back, ${user.name?.split(' ')[0]}` : 'Welcome to Consultant AI'}
+              </span>
             </motion.div>
             
-            <h1 className="text-4xl md:text-6xl font-bold text-slate-900 mb-4" data-testid="dashboard-title">
-              Consultant AI
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-4 tracking-tight">
+              <span className="gradient-text">Strategy Command Center</span>
             </h1>
-            <p className="text-lg md:text-xl text-slate-600 max-w-2xl mx-auto">
-              McKinsey-grade consulting powered by AI
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Choose your analysis mode and get McKinsey-grade insights in minutes
             </p>
-          </div>
+          </motion.div>
 
-          {/* Mode Selection */}
-          <div className="grid md:grid-cols-2 gap-6 mb-12">
-            {modes.map((mode) => {
+          {/* Mode Selection - One Click Cards */}
+          <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto mb-12">
+            {modes.map((mode, index) => {
               const Icon = mode.icon;
-              const isSelected = selectedMode === mode.id;
-              
               return (
                 <motion.div
                   key={mode.id}
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 + index * 0.1 }}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
                   <Card
+                    className={`glass-card p-8 cursor-pointer hover-lift overflow-hidden relative group`}
+                    onClick={() => navigate(mode.path)}
                     data-testid={`mode-card-${mode.id}`}
-                    className={`p-8 cursor-pointer transition-all duration-300 bg-white hover:shadow-xl ${
-                      isSelected ? `ring-2 ring-offset-2 ${mode.borderColor} ring-opacity-50 shadow-lg` : 'shadow-md hover:shadow-lg'
-                    }`}
-                    onClick={() => setSelectedMode(mode.id)}
                   >
-                    <div className="flex items-start justify-between mb-6">
-                      <div className={`p-4 rounded-2xl bg-gradient-to-br ${mode.gradient}`}>
-                        <Icon className={`w-8 h-8 ${mode.iconColor}`} />
+                    {/* Background gradient */}
+                    <div className={`absolute inset-0 bg-gradient-to-br ${mode.gradient} opacity-50 group-hover:opacity-70 transition-opacity`} />
+                    
+                    <div className="relative z-10">
+                      <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${mode.iconBg} flex items-center justify-center mb-6 shadow-lg`}>
+                        <Icon className="w-8 h-8 text-white" />
                       </div>
-                      {isSelected && (
-                        <motion.div
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          className="w-6 h-6 rounded-full bg-gradient-to-r from-green-400 to-emerald-500 flex items-center justify-center"
-                        >
-                          <ChevronRight className="w-4 h-4 text-white" />
-                        </motion.div>
-                      )}
-                    </div>
-                    
-                    <h3 className="text-2xl font-bold text-slate-900 mb-3">{mode.title}</h3>
-                    <p className="text-slate-600 mb-4">{mode.description}</p>
-                    
-                    <div className="space-y-2">
-                      {mode.features.map((feature, idx) => (
-                        <div key={idx} className="flex items-center gap-2 text-sm text-slate-500">
-                          <div className="w-1.5 h-1.5 rounded-full bg-slate-300" />
-                          {feature}
-                        </div>
-                      ))}
+                      
+                      <h2 className="text-2xl font-bold mb-3">{mode.title}</h2>
+                      <p className="text-muted-foreground mb-6 leading-relaxed">{mode.description}</p>
+                      
+                      <div className="space-y-2 mb-6">
+                        {mode.features.map((feature, idx) => (
+                          <div key={idx} className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                            {feature}
+                          </div>
+                        ))}
+                      </div>
+                      
+                      <Button className="w-full btn-primary group-hover:shadow-xl">
+                        Get Started
+                        <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                      </Button>
                     </div>
                   </Card>
                 </motion.div>
@@ -117,52 +121,61 @@ export default function Dashboard() {
             })}
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-            <Button
-              data-testid="start-button"
-              onClick={() => selectedMode && navigate(selectedMode === 'research' ? '/research' : '/consulting')}
-              disabled={!selectedMode}
-              size="lg"
-              className="bg-slate-900 hover:bg-slate-800 text-white px-8 py-6 text-base font-semibold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all"
-            >
-              Start Project
-              <ChevronRight className="w-5 h-5 ml-2" />
-            </Button>
-            <Button
-              data-testid="deliverables-bank-button"
-              onClick={() => navigate('/deliverables')}
-              variant="outline"
-              size="lg"
-              className="border-2 border-slate-200 hover:border-slate-300 text-slate-700 px-8 py-6 text-base font-semibold bg-white hover:bg-slate-50 shadow-md hover:shadow-lg transition-all"
-            >
-              <Database className="w-5 h-5 mr-2" />
-              View Deliverables
-            </Button>
-          </div>
+          {/* Quick Actions */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="flex flex-wrap justify-center gap-4"
+          >
+            {quickActions.map((action, index) => {
+              const Icon = action.icon;
+              return (
+                <Button
+                  key={index}
+                  variant="outline"
+                  onClick={() => navigate(action.path)}
+                  className="glass-card border-2 hover:border-primary/50 px-6"
+                  data-testid={`quick-action-${index}`}
+                >
+                  <Icon className={`w-4 h-4 mr-2 ${action.color}`} />
+                  {action.label}
+                </Button>
+              );
+            })}
+          </motion.div>
+        </div>
+      </section>
 
-          {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {stats.map((stat, index) => {
+      {/* Stats Section */}
+      <section className="py-16">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
+            {[
+              { value: '8', label: 'AI Consultants', icon: Users },
+              { value: '50+', label: 'Data Sources', icon: Database },
+              { value: '3', label: 'Debate Rounds', icon: TrendingUp },
+              { value: '100%', label: 'AI Powered', icon: Sparkles }
+            ].map((stat, index) => {
               const StatIcon = stat.icon;
               return (
                 <motion.div
                   key={index}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
+                  transition={{ delay: 0.6 + index * 0.1 }}
                 >
-                  <Card className="p-6 text-center bg-white shadow-md hover:shadow-lg transition-shadow">
-                    <StatIcon className="w-8 h-8 mx-auto mb-3 text-slate-400" />
-                    <div className="text-3xl font-bold text-slate-900 mb-1">{stat.value}</div>
-                    <div className="text-sm text-slate-600">{stat.label}</div>
+                  <Card className="glass-card p-6 text-center hover-lift">
+                    <StatIcon className="w-8 h-8 mx-auto mb-3 text-primary/70" />
+                    <div className="text-3xl font-bold gradient-text mb-1">{stat.value}</div>
+                    <div className="text-sm text-muted-foreground">{stat.label}</div>
                   </Card>
                 </motion.div>
               );
             })}
           </div>
-        </motion.div>
-      </div>
+        </div>
+      </section>
     </div>
   );
 }
