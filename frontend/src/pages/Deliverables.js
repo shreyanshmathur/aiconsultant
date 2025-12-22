@@ -48,7 +48,7 @@ export default function Deliverables() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background" style={{backgroundColor: '#F8F9FA'}}>
       <div className="container mx-auto px-6 py-8">
         <Button
           data-testid="back-button"
