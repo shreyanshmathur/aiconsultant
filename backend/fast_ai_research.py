@@ -235,13 +235,200 @@ Be concise and actionable."""
     def _get_competitors(self, vendor: str) -> List[str]:
         """Get competitor list"""
         competitors = {
-            'SAP': ['Oracle', 'Microsoft Dynamics', 'Workday', 'ServiceNow', 'Infor'],
-            'Oracle': ['SAP', 'Microsoft', 'IBM', 'Salesforce', 'Workday'],
-            'Microsoft': ['Google', 'Amazon', 'Salesforce', 'Oracle', 'SAP'],
-            'Salesforce': ['Microsoft Dynamics', 'Oracle CX', 'HubSpot', 'SAP', 'Adobe'],
-            'ServiceNow': ['SAP', 'Oracle', 'BMC', 'Ivanti', 'Atlassian']
+            'SAP': ['Oracle', 'Microsoft Dynamics', 'Workday', 'ServiceNow'],
+            'Oracle': ['SAP', 'Microsoft', 'IBM', 'Salesforce'],
+            'Microsoft': ['Salesforce', 'Oracle', 'SAP', 'Adobe'],
+            'Salesforce': ['Microsoft Dynamics', 'Oracle CX', 'HubSpot', 'SAP'],
+            'ServiceNow': ['SAP', 'Oracle', 'BMC', 'Ivanti']
         }
-        return competitors.get(vendor, [vendor, 'Industry Leader A', 'Industry Leader B', 'Industry Leader C'])
+        return competitors.get(vendor, ['Oracle', 'SAP', 'Microsoft', 'Salesforce'])
+    
+    async def _compare_vendors(self, vendors: List[str], industry: str, problem: str) -> Dict:
+        """Compare multiple vendors with scoring"""
+        
+        comparison = {}
+        
+        # Scoring criteria based on problem
+        p = problem.lower()
+        criteria_weights = {
+            'pricing': 0.2 if 'pricing' in p or 'cost' in p else 0.1,
+            'features': 0.25,
+            'scalability': 0.2 if 'growth' in p or 'scale' in p else 0.15,
+            'ease_of_use': 0.15,
+            'support': 0.1,
+            'integration': 0.1 if 'integration' in p else 0.05
+        }
+        
+        for vendor in vendors:
+            # Generate scores (0-10 scale)
+            scores = self._calculate_vendor_scores(vendor, industry, problem)
+            
+            # Calculate weighted total
+            total_score = sum(scores[k] * criteria_weights.get(k, 0.1) for k in scores.keys())
+            
+            comparison[vendor] = {
+                'scores': scores,
+                'total_score': round(total_score, 1),
+                'strengths': self._get_vendor_strengths(vendor, industry),
+                'weaknesses': self._get_vendor_weaknesses(vendor, industry),
+                'best_for': self._get_best_use_case(vendor, industry),
+                'pricing_tier': self._get_pricing_tier(vendor)
+            }
+        
+        return comparison
+    
+    def _calculate_vendor_scores(self, vendor: str, industry: str, problem: str) -> Dict[str, float]:
+        """Calculate scores for vendor across criteria"""
+        
+        # Base scores by vendor reputation
+        vendor_profiles = {
+            'SAP': {'pricing': 6.5, 'features': 9.5, 'scalability': 9.5, 'ease_of_use': 6.0, 'support': 8.5, 'integration': 9.0},
+            'Oracle': {'pricing': 6.0, 'features': 9.0, 'scalability': 9.0, 'ease_of_use': 6.5, 'support': 8.0, 'integration': 9.0},
+            'Microsoft': {'pricing': 8.0, 'features': 8.5, 'scalability': 9.0, 'ease_of_use': 8.5, 'support': 9.0, 'integration': 9.5},
+            'Salesforce': {'pricing': 7.0, 'features': 9.0, 'scalability': 8.5, 'ease_of_use': 9.0, 'support': 9.5, 'integration': 8.5},
+            'Workday': {'pricing': 7.5, 'features': 8.5, 'scalability': 8.5, 'ease_of_use': 8.0, 'support': 9.0, 'integration': 8.0},
+            'ServiceNow': {'pricing': 7.0, 'features': 8.5, 'scalability': 8.5, 'ease_of_use': 7.5, 'support': 8.5, 'integration': 8.5},
+            'HubSpot': {'pricing': 8.5, 'features': 8.0, 'scalability': 7.5, 'ease_of_use': 9.5, 'support': 8.5, 'integration': 8.0},
+            'Adobe': {'pricing': 6.5, 'features': 9.0, 'scalability': 8.5, 'ease_of_use': 7.5, 'support': 8.0, 'integration': 8.5}
+        }
+        
+        return vendor_profiles.get(vendor, {
+            'pricing': 7.0, 'features': 7.5, 'scalability': 7.5, 
+            'ease_of_use': 7.0, 'support': 7.5, 'integration': 7.5
+        })
+    
+    def _get_vendor_strengths(self, vendor: str, industry: str) -> List[str]:
+        """Get vendor strengths"""
+        strengths_map = {
+            'SAP': ['Market leader in enterprise ERP', 'Comprehensive feature set', 'Strong in manufacturing and logistics'],
+            'Oracle': ['Robust database integration', 'Strong financial modules', 'Cloud infrastructure depth'],
+            'Microsoft': ['Seamless Office 365 integration', 'Competitive pricing', 'Extensive partner ecosystem'],
+            'Salesforce': ['Best-in-class CRM', 'Rapid innovation', 'User-friendly interface'],
+            'Workday': ['Modern cloud architecture', 'Strong HR/Finance integration', 'Intuitive user experience'],
+            'ServiceNow': ['Workflow automation excellence', 'IT service management leader', 'Extensible platform'],
+            'HubSpot': ['Easy to implement', 'Excellent for SMBs', 'Strong marketing automation'],
+            'Adobe': ['Creative suite integration', 'Marketing cloud leader', 'Strong analytics']
+        }
+        return strengths_map.get(vendor, ['Established market presence', 'Proven track record', 'Enterprise features'])
+    
+    def _get_vendor_weaknesses(self, vendor: str, industry: str) -> List[str]:
+        """Get vendor weaknesses"""
+        weaknesses_map = {
+            'SAP': ['Complex implementation', 'High total cost', 'Steep learning curve'],
+            'Oracle': ['Complex licensing', 'Legacy system baggage', 'Can be expensive'],
+            'Microsoft': ['Less specialized features', 'Multiple product overlap', 'Integration complexity'],
+            'Salesforce': ['Cost scales quickly', 'Customization can be complex', 'Add-ons increase price'],
+            'Workday': ['Limited customization', 'Release schedule constraints', 'Premium pricing'],
+            'ServiceNow': ['Steep learning curve', 'Complex configuration', 'Higher cost of ownership'],
+            'HubSpot': ['Limited enterprise features', 'Scaling can be expensive', 'Less customization'],
+            'Adobe': ['Expensive for full suite', 'Complex tool ecosystem', 'Learning curve for advanced features']
+        }
+        return weaknesses_map.get(vendor, ['Implementation complexity', 'TCO considerations', 'Change management required'])
+    
+    def _get_best_use_case(self, vendor: str, industry: str) -> str:
+        """Get best use case for vendor"""
+        use_cases = {
+            'SAP': 'Large enterprises with complex supply chain and manufacturing operations',
+            'Oracle': 'Financial services and large enterprises needing robust database integration',
+            'Microsoft': 'Mid-market companies already using Microsoft ecosystem',
+            'Salesforce': 'Sales-driven organizations prioritizing CRM and customer engagement',
+            'Workday': 'Mid to large enterprises prioritizing HR and financial management',
+            'ServiceNow': 'IT-centric organizations needing workflow automation',
+            'HubSpot': 'SMBs and startups needing quick implementation',
+            'Adobe': 'Marketing-focused organizations with creative needs'
+        }
+        return use_cases.get(vendor, f'{industry} companies seeking comprehensive solution')
+    
+    def _get_pricing_tier(self, vendor: str) -> str:
+        """Get pricing tier"""
+        pricing = {
+            'SAP': 'Premium ($$$)',
+            'Oracle': 'Premium ($$$)',
+            'Microsoft': 'Mid-High ($$)',
+            'Salesforce': 'Mid-High ($$)',
+            'Workday': 'Premium ($$$)',
+            'ServiceNow': 'Mid-High ($$)',
+            'HubSpot': 'Affordable ($)',
+            'Adobe': 'Mid-High ($$)'
+        }
+        return pricing.get(vendor, 'Mid-Range ($$)')
+    
+    async def _generate_comparison_results(self, primary_vendor: str, primary_analysis: Dict, 
+                                          comparison: Dict, industry: str, problem: str) -> Dict:
+        """Generate final comparison results with recommendations"""
+        
+        # Rank vendors by score
+        ranked_vendors = sorted(comparison.items(), key=lambda x: x[1]['total_score'], reverse=True)
+        
+        # Generate final recommendations based on comparison
+        recommendations = []
+        
+        # Top vendor recommendation
+        top_vendor = ranked_vendors[0][0]
+        top_score = ranked_vendors[0][1]['total_score']
+        
+        if top_vendor == primary_vendor:
+            recommendations.append(f"✅ {primary_vendor} is the top-rated solution (score: {top_score}/10) for your requirements")
+        else:
+            recommendations.append(f"⭐ Consider {top_vendor} as primary option (score: {top_score}/10) - outperforms {primary_vendor}")
+        
+        # Add specific recommendations
+        if 'pricing' in problem.lower() or 'cost' in problem.lower():
+            affordable_vendors = [v for v, data in comparison.items() if data['scores']['pricing'] >= 8.0]
+            if affordable_vendors:
+                recommendations.append(f"💰 For cost optimization: {', '.join(affordable_vendors[:2])} offer best pricing value")
+        
+        if 'growth' in problem.lower() or 'scale' in problem.lower():
+            scalable_vendors = [v for v, data in comparison.items() if data['scores']['scalability'] >= 8.5]
+            if scalable_vendors:
+                recommendations.append(f"📈 For scalability: {', '.join(scalable_vendors[:2])} provide robust growth support")
+        
+        recommendations.extend([
+            f"🔍 Conduct side-by-side demos with top 3: {', '.join([v for v, _ in ranked_vendors[:3]])}",
+            f"📊 Request detailed TCO analysis from shortlisted vendors",
+            f"✅ Prioritize {ranked_vendors[0][1]['best_for']} alignment with your use case"
+        ])
+        
+        # Combine primary analysis with comparison
+        result = {
+            **primary_analysis,
+            "vendor_comparison": {
+                "primary_vendor": primary_vendor,
+                "vendors_analyzed": list(comparison.keys()),
+                "comparison_data": comparison,
+                "ranked_vendors": [{"vendor": v, "score": d['total_score'], "rank": i+1} 
+                                  for i, (v, d) in enumerate(ranked_vendors)],
+                "winner": ranked_vendors[0][0],
+                "winner_score": ranked_vendors[0][1]['total_score']
+            },
+            "comparison_summary": {
+                "total_vendors_compared": len(comparison),
+                "top_recommendation": ranked_vendors[0][0],
+                "score_range": f"{ranked_vendors[-1][1]['total_score']}-{ranked_vendors[0][1]['total_score']}/10",
+                "key_differentiator": self._identify_key_differentiator(ranked_vendors[:3])
+            },
+            "recommendations": recommendations
+        }
+        
+        return result
+    
+    def _identify_key_differentiator(self, top_vendors: List) -> str:
+        """Identify key differentiator among top vendors"""
+        if not top_vendors:
+            return "Feature completeness and vendor reputation"
+        
+        top_3_names = [v[0] for v in top_vendors[:3]]
+        
+        if 'HubSpot' in top_3_names:
+            return "Ease of implementation and user experience"
+        elif 'Microsoft' in top_3_names:
+            return "Ecosystem integration and competitive pricing"
+        elif 'SAP' in top_3_names or 'Oracle' in top_3_names:
+            return "Enterprise feature depth and scalability"
+        elif 'Salesforce' in top_3_names:
+            return "CRM capabilities and innovation velocity"
+        else:
+            return "Balanced feature set and market fit"
     
     def _intelligent_fallback(self, vendor: str, industry: str, problem: str, additional_context: str = None) -> Dict:
         """Intelligent fallback that analyzes the problem statement"""
