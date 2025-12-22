@@ -242,6 +242,31 @@ export default function Research() {
                       </motion.div>
                     )}
 
+                    <div>
+                      <Label htmlFor="files" className="text-slate-700 font-medium">Upload Additional Context (Optional)</Label>
+                      <p className="text-sm text-slate-500 mb-2">Upload PDF or Excel files with company data, reports, or financials</p>
+                      <input
+                        id="files"
+                        type="file"
+                        multiple
+                        accept=".pdf,.xlsx,.xls"
+                        onChange={handleFileUpload}
+                        className="mt-2 block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                      />
+                      {uploadedFiles.length > 0 && (
+                        <div className="mt-3 space-y-2">
+                          {uploadedFiles.map((file, idx) => (
+                            <div key={idx} className="flex items-center gap-2 text-xs text-slate-600 bg-green-50 p-2 rounded">
+                              <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                              </svg>
+                              {file.filename} ({file.type})
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
                     <div className="grid md:grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor="vendor" className="text-slate-700 font-medium">Vendor Name (Optional)</Label>
