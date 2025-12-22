@@ -1,5 +1,5 @@
 import openpyxl
-from openpyxl.styles import Font, PatternFill, Alignment
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 import requests
 import os
 from typing import Dict, List
@@ -133,9 +133,9 @@ class DeliverableService:
         ws.column_dimensions['A'].width = 80
     
     async def generate_ppt_via_gamma(self, content: Dict) -> Dict:
-        """Generate PPT presentation using Gamma API with fallback"""
+        """Generate PPT presentation using Gamma API with HTML fallback"""
         if not self.gamma_api_key:
-            return await self._generate_ppt_fallback(content)
+            return await self._generate_html_presentation(content)
         
         try:
             headers = {
@@ -143,56 +143,280 @@ class DeliverableService:
                 "Content-Type": "application/json"
             }
             
-            # Gamma API v2 endpoint
+            # Try Gamma API v1.0
             payload = {
-                "text": content.get('text', ''),
+                "inputText": content.get('text', ''),
                 "title": content.get('title', 'Consulting Report')
             }
             
-            response = requests.post(
+            # Try multiple possible endpoints
+            endpoints = [
+                "https://api.gamma.app/v1.0/presentations",
                 "https://api.gamma.app/api/v1/decks",
-                headers=headers,
-                json=payload,
-                timeout=30
-            )
+                "https://api.gamma.app/v1.0/decks"
+            ]
             
-            if response.status_code == 200 or response.status_code == 201:
-                result = response.json()
-                return {
-                    "success": True,
-                    "presentation_url": result.get('url', result.get('webUrl', '')),
-                    "presentation_id": result.get('id', ''),
-                    "type": "gamma"
-                }
-            else:
-                # Fallback to text-based presentation
-                return await self._generate_ppt_fallback(content)
-        except Exception:
-            # Fallback to text-based presentation
-            return await self._generate_ppt_fallback(content)
+            for endpoint in endpoints:
+                try:
+                    response = requests.post(
+                        endpoint,
+                        headers=headers,
+                        json=payload,
+                        timeout=30
+                    )
+                    
+                    if response.status_code in [200, 201]:
+                        result = response.json()
+                        return {
+                            "success": True,
+                            "presentation_url": result.get('url', result.get('webUrl', '')),
+                            "presentation_id": result.get('id', ''),
+                            "type": "gamma"
+                        }
+                except:
+                    continue
+            
+            # If all Gamma endpoints fail, use HTML presentation
+            return await self._generate_html_presentation(content)
+            
+        except Exception as e:
+            return await self._generate_html_presentation(content)
     
-    async def _generate_ppt_fallback(self, content: Dict) -> Dict:
-        """Generate a text-based presentation file as fallback"""
+    async def _generate_html_presentation(self, content: Dict) -> Dict:
+        """Generate a professional HTML presentation file"""
         try:
-            filename = f"presentation_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+            filename = f"presentation_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html"
             filepath = f"/app/deliverables/{filename}"
             
             os.makedirs("/app/deliverables", exist_ok=True)
             
+            title = content.get('title', 'Consulting Report')
+            text = content.get('text', 'No content provided')
+            
+            # Parse text into slides
+            slides = self._parse_content_to_slides(title, text)
+            
+            html_content = self._generate_presentation_html(title, slides)
+            
             with open(filepath, 'w') as f:
-                f.write(f"===== {content.get('title', 'Consulting Report')} =====\n\n")
-                f.write(content.get('text', 'No content provided'))
-                f.write("\n\n===== End of Presentation =====\n")
+                f.write(html_content)
             
             return {
                 "success": True,
                 "presentation_url": f"/api/deliverables/{filename}",
                 "presentation_id": filename,
-                "type": "text",
-                "note": "Generated as text file. For PowerPoint, provide valid Gamma API key."
+                "type": "html",
+                "note": "Interactive HTML presentation. Open in browser for best experience."
             }
         except Exception as e:
             return {
                 "success": False,
                 "error": str(e)
             }
+    
+    def _parse_content_to_slides(self, title: str, text: str) -> List[Dict]:
+        """Parse text content into slide format"""
+        slides = [{"title": title, "content": ["Executive Summary"], "type": "title"}]
+        
+        lines = text.split('\n')
+        current_section = None
+        current_content = []
+        
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
+            
+            # Check for section headers
+            if line.startswith('Problem:') or line.startswith('Challenge:'):
+                if current_section:
+                    slides.append({"title": current_section, "content": current_content, "type": "content"})
+                current_section = "The Challenge"
+                current_content = [line.replace('Problem:', '').replace('Challenge:', '').strip()]
+            elif line.startswith('Consensus:') or line.startswith('Summary:'):
+                if current_section:
+                    slides.append({"title": current_section, "content": current_content, "type": "content"})
+                current_section = "Executive Summary"
+                current_content = [line.replace('Consensus:', '').replace('Summary:', '').strip()]
+            elif line.startswith('Recommendation') or line.startswith('Next Step'):
+                if current_section:
+                    slides.append({"title": current_section, "content": current_content, "type": "content"})
+                current_section = "Recommendations"
+                current_content = []
+            elif line.startswith(('-', '•', '*')) or (len(line) > 2 and line[0].isdigit() and line[1] in '.):'):
+                clean = line.lstrip('-•*0123456789.)').strip()
+                if clean:
+                    current_content.append(clean)
+            elif current_section:
+                current_content.append(line)
+        
+        if current_section and current_content:
+            slides.append({"title": current_section, "content": current_content, "type": "content"})
+        
+        # Add conclusion slide
+        slides.append({"title": "Next Steps", "content": ["Review recommendations", "Schedule follow-up meeting", "Begin implementation planning"], "type": "content"})
+        
+        return slides
+    
+    def _generate_presentation_html(self, title: str, slides: List[Dict]) -> str:
+        """Generate professional HTML presentation"""
+        slides_html = ""
+        for i, slide in enumerate(slides):
+            slide_type = slide.get('type', 'content')
+            
+            if slide_type == 'title':
+                slides_html += f'''
+                <div class="slide title-slide" data-slide="{i}">
+                    <h1>{slide['title']}</h1>
+                    <p class="subtitle">{slide['content'][0] if slide['content'] else ''}</p>
+                </div>
+                '''
+            else:
+                content_html = ""
+                for item in slide.get('content', []):
+                    content_html += f"<li>{item}</li>\n"
+                
+                slides_html += f'''
+                <div class="slide" data-slide="{i}">
+                    <h2>{slide['title']}</h2>
+                    <ul>{content_html}</ul>
+                </div>
+                '''
+        
+        return f'''<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{title}</title>
+    <style>
+        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+        body {{
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            color: white;
+            min-height: 100vh;
+        }}
+        .presentation {{
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }}
+        .slide {{
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 60px;
+            margin-bottom: 40px;
+            min-height: 500px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }}
+        .title-slide {{
+            text-align: center;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(147, 51, 234, 0.2) 100%);
+        }}
+        .title-slide h1 {{
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }}
+        .subtitle {{
+            font-size: 1.5rem;
+            color: rgba(255, 255, 255, 0.7);
+        }}
+        h2 {{
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin-bottom: 40px;
+            color: #60a5fa;
+        }}
+        ul {{
+            list-style: none;
+            padding: 0;
+        }}
+        li {{
+            font-size: 1.25rem;
+            line-height: 1.8;
+            padding: 15px 0;
+            padding-left: 40px;
+            position: relative;
+            color: rgba(255, 255, 255, 0.9);
+        }}
+        li::before {{
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: #60a5fa;
+        }}
+        .nav {{
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            display: flex;
+            gap: 10px;
+        }}
+        .nav button {{
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }}
+        .nav button:hover {{
+            background: rgba(255, 255, 255, 0.2);
+        }}
+        .slide-counter {{
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.9rem;
+        }}
+        @media print {{
+            .slide {{ page-break-after: always; min-height: 100vh; }}
+            .nav, .slide-counter {{ display: none; }}
+        }}
+    </style>
+</head>
+<body>
+    <div class="presentation">
+        {slides_html}
+    </div>
+    <div class="nav">
+        <button onclick="prevSlide()">← Previous</button>
+        <button onclick="nextSlide()">Next →</button>
+    </div>
+    <div class="slide-counter">
+        <span id="current">1</span> / <span id="total">{len(slides)}</span>
+    </div>
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const total = slides.length;
+        
+        function showSlide(n) {{
+            slides.forEach((s, i) => s.style.display = i === n ? 'flex' : 'none');
+            document.getElementById('current').textContent = n + 1;
+        }}
+        
+        function nextSlide() {{ if (currentSlide < total - 1) showSlide(++currentSlide); }}
+        function prevSlide() {{ if (currentSlide > 0) showSlide(--currentSlide); }}
+        
+        document.addEventListener('keydown', (e) => {{
+            if (e.key === 'ArrowRight' || e.key === ' ') nextSlide();
+            if (e.key === 'ArrowLeft') prevSlide();
+        }});
+        
+        showSlide(0);
+    </script>
+</body>
+</html>'''
