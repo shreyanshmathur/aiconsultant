@@ -482,10 +482,15 @@ async def update_api_key(key_update: APIKeyUpdate):
 # Mount the router
 app.include_router(api_router)
 
-# CORS middleware
+# CORS middleware - handle credentials properly
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "https://strategyai-10.preview.emergentagent.com",
+        "https://auth.emergentagent.com"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
