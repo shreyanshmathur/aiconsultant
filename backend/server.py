@@ -130,15 +130,18 @@ async def get_project(project_id: str):
 # Research endpoints
 @api_router.post("/research/vendor-analysis")
 async def conduct_vendor_analysis(request: ResearchRequest):
-    """Conduct vendor analysis"""
-    if not request.vendor_name or not request.industry:
-        raise HTTPException(status_code=400, detail="vendor_name and industry are required")
+    """Conduct vendor analysis with optional vendor and industry"""
+    
+    # Use problem statement as the main input
+    problem = request.query or "General business analysis"
     
     results = await research_service.conduct_vendor_analysis(
-        request.vendor_name,
-        request.industry
+        problem=problem,
+        vendor_name=request.vendor_name,
+        industry=request.industry
     )
     
+    # Update project with research data
     await db.projects.update_one(
         {"id": request.project_id},
         {"$set": {"research_data": results, "updated_at": datetime.now(timezone.utc).isoformat()}}
