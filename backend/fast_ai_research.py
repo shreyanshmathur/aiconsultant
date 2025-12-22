@@ -127,7 +127,7 @@ Be concise and actionable."""
         """Structure AI response into consistent format"""
         
         # Parse AI response - handle both markdown and plain formats
-        lines = [l.strip() for l in ai_text.split('\\n') if l.strip()]
+        lines = [line.strip() for line in ai_text.split('\\n') if line.strip()]
         
         # Extract sections
         market_position = []
