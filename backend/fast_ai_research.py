@@ -392,20 +392,15 @@ Be concise and actionable."""
         # Combine primary analysis with comparison
         result = {
             **primary_analysis,
-            "vendor_comparison": {
-                "primary_vendor": primary_vendor,
-                "vendors_analyzed": list(comparison.keys()),
-                "comparison_data": comparison,
-                "ranked_vendors": [{"vendor": v, "score": d['total_score'], "rank": i+1} 
-                                  for i, (v, d) in enumerate(ranked_vendors)],
-                "winner": ranked_vendors[0][0],
-                "winner_score": ranked_vendors[0][1]['total_score']
-            },
+            "vendor_comparison": comparison,  # Flat structure for easy frontend access
+            "recommended_vendor": ranked_vendors[0][0],
+            "recommendation_reason": self._identify_key_differentiator(ranked_vendors[:3]),
             "comparison_summary": {
                 "total_vendors_compared": len(comparison),
                 "top_recommendation": ranked_vendors[0][0],
                 "score_range": f"{ranked_vendors[-1][1]['total_score']}-{ranked_vendors[0][1]['total_score']}/10",
-                "key_differentiator": self._identify_key_differentiator(ranked_vendors[:3])
+                "ranked_vendors": [{"vendor": v, "score": d['total_score'], "rank": i+1} 
+                                  for i, (v, d) in enumerate(ranked_vendors)]
             },
             "recommendations": recommendations
         }
