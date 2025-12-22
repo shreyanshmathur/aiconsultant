@@ -130,23 +130,23 @@ class GeminiAgent(ConsultantAgent):
         # Fallback response if Gemini not available
         return f"[{self.name}] Customer perspective: Understanding Tier 2/3 markets and Bharat segment is crucial. Focus on trust-building, vernacular support, and addressing ground realities. The current pricing may not resonate with diverse customer segments across different regions."
 
-# Agent configurations with corrected model IDs
+# Agent configurations with working model IDs
 AGENT_CONFIGS = [
     {
         "name": "PRIYA SHARMA",
         "role": "India Market Strategy Lead",
         "specialty": "Indian enterprise market, government projects, budget constraints, cultural nuances",
         "personality": "Authoritative, culturally aware, relationship-focused, pragmatic about Indian business realities",
-        "model": {"model": "qwen/qwen3-vl-32b-instruct", "provider": "openrouter"},
-        "avatar_url": "https://images.unsplash.com/photo-1758599543120-4e462429a4d7?w=200&h=200&fit=crop"
+        "model": {"model": "meta-llama/llama-3.3-70b-instruct", "provider": "openrouter"},
+        "avatar_url": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&h=200&fit=crop"
     },
     {
         "name": "ARJUN IYER",
         "role": "Technology Architect (India Stack)",
         "specialty": "India Stack (UPI, Aadhaar), massive scale systems, mobile-first, low-bandwidth optimization",
         "personality": "Technical, pragmatic, focused on frugal innovation and cost optimization",
-        "model": {"model": "deepseek/deepseek-v3.2-speciale", "provider": "openrouter"},
-        "avatar_url": "https://images.unsplash.com/photo-1762522927402-f390672558d8?w=200&h=200&fit=crop"
+        "model": {"model": "meta-llama/llama-3.2-3b-instruct:free", "provider": "openrouter"},
+        "avatar_url": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop"
     },
     {
         "name": "SNEHA KAPOOR",
@@ -154,47 +154,47 @@ AGENT_CONFIGS = [
         "specialty": "Enterprise transformation, change management, legacy system migration, stakeholder management",
         "personality": "Empathetic, strategic, experienced with organizational dynamics",
         "model": {"model": "llama-3.3-70b-versatile", "provider": "groq"},
-        "avatar_url": "https://images.unsplash.com/photo-1762522926984-e721bff0d6c6?w=200&h=200&fit=crop"
+        "avatar_url": "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=200&h=200&fit=crop"
     },
     {
         "name": "RAHUL MENON",
         "role": "SaaS & Product Strategy",
         "specialty": "SaaS for Indian SMBs, pricing models, payment integration, freemium strategies",
         "personality": "Product-minded, data-driven, understands Indian SMB psychology",
-        "model": {"model": "mistralai/mistral-small-creative", "provider": "openrouter"},
-        "avatar_url": "https://images.unsplash.com/photo-1762522926157-bcc04bf0b10a?w=200&h=200&fit=crop"
+        "model": {"model": "mistralai/mistral-7b-instruct:free", "provider": "openrouter"},
+        "avatar_url": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop"
     },
     {
         "name": "DR. KAVITA REDDY",
         "role": "Data & AI Specialist",
         "specialty": "AI for Indian languages, recommendation systems, computer vision, fraud detection",
         "personality": "Analytical, detail-oriented, focused on data quality and practical AI",
-        "model": {"model": "qwen/qwen3-vl-8b-instruct", "provider": "openrouter"},
-        "avatar_url": "https://images.unsplash.com/photo-1762505464553-1f4eb1578f23?w=200&h=200&fit=crop"
+        "model": {"model": "nvidia/nemotron-nano-9b-v2:free", "provider": "openrouter"},
+        "avatar_url": "https://images.unsplash.com/photo-1594824476967-48c8b964273f?w=200&h=200&fit=crop"
     },
     {
         "name": "VIKRAM SINGH",
         "role": "Security & Compliance (India)",
         "specialty": "RBI, SEBI, IRDAI regulations, payment security, UPI security",
         "personality": "Risk-averse, thorough, focused on compliance",
-        "model": {"model": "nousresearch/hermes-4-70b", "provider": "openrouter"},
-        "avatar_url": "https://images.unsplash.com/photo-1568585105565-e372998a195d?w=200&h=200&fit=crop"
+        "model": {"model": "meta-llama/llama-3.3-70b-instruct", "provider": "openrouter"},
+        "avatar_url": "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=200&h=200&fit=crop"
     },
     {
         "name": "ANITA DESAI",
         "role": "Customer & Market Insights",
         "specialty": "Tier 2/3 cities, Bharat market, customer behavior, trust-building",
         "personality": "Empathetic, customer-obsessed, focused on ground realities",
-        "model": {"model": "gemini-2.0-flash-exp", "provider": "gemini"},
-        "avatar_url": "https://images.unsplash.com/photo-1758691737587-7630b4d31d16?w=200&h=200&fit=crop"
+        "model": {"model": "llama-3.3-70b-versatile", "provider": "groq"},
+        "avatar_url": "https://images.unsplash.com/photo-1551836022-deb4988cc6c0?w=200&h=200&fit=crop"
     },
     {
         "name": "SAMEER MALHOTRA",
         "role": "The Reality Check (Startup Veteran)",
         "specialty": "Execution challenges, budget realities, failure prevention",
         "personality": "Skeptical, direct, focused on identifying risks",
-        "model": {"model": "nvidia/llama-3.3-nemotron-super-49b-v1.5", "provider": "openrouter"},
-        "avatar_url": "https://images.unsplash.com/photo-1758518729314-b02874db8c37?w=200&h=200&fit=crop"
+        "model": {"model": "openai/gpt-oss-20b:free", "provider": "openrouter"},
+        "avatar_url": "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=200&h=200&fit=crop"
     }
 ]
 
