@@ -34,7 +34,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background" style={{backgroundColor: '#F8F9FA'}}>
       <div className="container mx-auto px-6 py-12">
         <div className="max-w-6xl mx-auto">
           <div className="mb-16">
