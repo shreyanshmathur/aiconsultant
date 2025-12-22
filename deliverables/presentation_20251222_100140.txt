@@ -1,0 +1,33 @@
+===== uu =====
+
+Problem:  B2B SaaS client’s revenue growth has stalled despite strong retention, and they have asked you to diagnose the problem and recommend a growth strategy.
+​
+
+Case prompt
+Your client is a mid-sized B2B SaaS company based in India that sells a project-management platform to tech and professional-services teams on a subscription model.
+​
+They currently generate 20 crore INR in annual recurring revenue (ARR), grow only 5% year-on-year, but maintain a 90% logo retention rate.
+​
+
+In the last 12 months:
+
+New customer acquisition has slowed, and customer acquisition cost (CAC) has increased by 30%.
+​
+
+Most revenue comes from mid-market Indian customers; attempts to move upmarket and to expand in Southeast Asia have not meaningfully increased ARR.
+​
+
+Pricing has not changed for three years and is a simple three-tier per-seat subscription.
+​
+
+The CEO believes “we have a great product but are leaving money on the table” and wants to double ARR in three years while maintaining profitability.
+
+
+Consensus: Based on the multi-perspective analysis from our consulting team, here are the key insights:
+
+Recommendations:
+Recommendation 1: Based on market analysis
+Recommendation 2: Based on technical feasibility
+Recommendation 3: Based on financial projections
+
+===== End of Presentation =====
