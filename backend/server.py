@@ -17,7 +17,7 @@ import io
 from conference_service import ConferenceRoomService
 from research_service import ResearchService
 from deliverable_service import DeliverableService
-from ai_research_service import AIResearchService
+from fast_ai_research import FastAIResearch
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -30,7 +30,7 @@ db = client[os.environ['DB_NAME']]
 # Initialize services
 conference_service = ConferenceRoomService()
 research_service = ResearchService()
-ai_research_service = AIResearchService()
+fast_ai_research = FastAIResearch()
 deliverable_service = DeliverableService()
 
 # Create the main app without a prefix
