@@ -7,7 +7,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Textarea } from '../components/ui/textarea';
-import { Loader2, Download, ArrowLeft, Sparkles, Search, TrendingUp, AlertCircle } from 'lucide-react';
+import { Loader2, Download, ArrowLeft, Sparkles, Search, TrendingUp, Trophy, Star } from 'lucide-react';
 import { toast } from 'sonner';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -33,53 +33,46 @@ export default function Research() {
     const files = event.target.files;
     if (!files || files.length === 0) return;
 
-    const formData = new FormData();
+    const formDataObj = new FormData();
     for (let i = 0; i < files.length; i++) {
-      formData.append('files', files[i]);
+      formDataObj.append('files', files[i]);
     }
 
     try {
-      const response = await axios.post(`${API}/research/upload`, formData, {
+      const response = await axios.post(`${API}/research/upload`, formDataObj, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       
       setUploadedFiles(response.data.extracted_content);
-      
-      // Combine extracted content
       const combinedContext = response.data.extracted_content
         .map(f => `${f.filename}:\n${f.content}`)
         .join('\n\n');
       setUploadedContext(combinedContext);
       
-      toast.success(`${response.data.files_processed} file(s) processed successfully`);
+      toast.success(`${response.data.files_processed} file(s) processed`);
     } catch (error) {
-      console.error('Upload error:', error);
       toast.error('Failed to upload files');
     }
   };
 
   useEffect(() => {
     if (formData.problem && formData.problem.length > 20) {
-      const debounce = setTimeout(() => {
-        autoDiscoverContext();
-      }, 1000);
+      const debounce = setTimeout(() => autoDiscoverContext(), 1000);
       return () => clearTimeout(debounce);
     }
   }, [formData.problem]);
 
-  const autoDiscoverContext = async () => {
-    // This would call the backend to auto-detect industry and vendors
-    // For now, simple client-side detection
+  const autoDiscoverContext = () => {
     const problem = formData.problem.toLowerCase();
     
     if (problem.includes('erp') || problem.includes('enterprise resource')) {
-      setSuggestedVendors(['SAP', 'Oracle', 'Microsoft Dynamics']);
+      setSuggestedVendors(['SAP', 'Oracle', 'Microsoft Dynamics', 'Workday']);
       setDetectedIndustry('Enterprise Software');
     } else if (problem.includes('crm') || problem.includes('customer relationship')) {
-      setSuggestedVendors(['Salesforce', 'HubSpot', 'Microsoft Dynamics']);
+      setSuggestedVendors(['Salesforce', 'HubSpot', 'Microsoft Dynamics', 'Zoho']);
       setDetectedIndustry('CRM & Sales');
     } else if (problem.includes('cloud')) {
-      setSuggestedVendors(['AWS', 'Azure', 'Google Cloud']);
+      setSuggestedVendors(['AWS', 'Azure', 'Google Cloud', 'IBM']);
       setDetectedIndustry('Cloud Computing');
     }
   };
@@ -93,24 +86,23 @@ export default function Research() {
         title: formData.title,
         problem_statement: formData.problem,
         project_type: 'research'
-      });
+      }, { withCredentials: true });
 
-      const projectId = projectResponse.data.id;
-      setProjectId(projectId);
+      const newProjectId = projectResponse.data.id;
+      setProjectId(newProjectId);
 
       const researchResponse = await axios.post(`${API}/research/vendor-analysis`, {
-        project_id: projectId,
-        problem: formData.problem,
+        project_id: newProjectId,
+        query: formData.problem,
         vendor_name: formData.vendorName || null,
         industry: formData.industry || null,
         additional_context: uploadedContext || null
-      });
+      }, { withCredentials: true });
 
       setResults(researchResponse.data);
-      toast.success('Research completed successfully!');
+      toast.success('Research completed!');
     } catch (error) {
-      console.error('Research error:', error);
-      toast.error('Failed to conduct research');
+      toast.error('Research failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -127,237 +119,229 @@ export default function Research() {
             `Vendor: ${results?.vendor_name}`,
             `Industry: ${results?.industry}`,
             `Analysis: ${results?.analysis?.market_position || ''}`,
-            ...results?.recommendations || []
+            ...(results?.recommendations || [])
           ]
         }
       });
-      toast.success('Deliverable generated! Check Deliverables Bank.');
+      toast.success('Excel report generated! View in Deliverables.');
+      navigate('/deliverables');
     } catch (error) {
-      console.error('Deliverable error:', error);
       toast.error('Failed to generate deliverable');
     }
   };
 
+  const getScoreColor = (score) => {
+    if (score >= 8) return 'score-high';
+    if (score >= 7) return 'score-medium';
+    return 'score-low';
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Button
-          data-testid="back-button"
           variant="ghost"
-          onClick={() => navigate('/')}
-          className="mb-6 hover:bg-white/50"
+          onClick={() => navigate('/dashboard')}
+          className="mb-6 hover:bg-primary/10"
+          data-testid="back-button"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back to Dashboard
         </Button>
 
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="mb-8"
           >
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-3 bg-blue-100 rounded-xl">
-                <Search className="w-6 h-6 text-blue-600" />
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-lg">
+                <Search className="w-7 h-7 text-white" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-slate-900" data-testid="research-title">
-                  AI-Powered Research
-                </h1>
-                <p className="text-slate-600">Vendor analysis and market intelligence</p>
+                <h1 className="text-3xl font-bold gradient-text">AI-Powered Research</h1>
+                <p className="text-muted-foreground">Vendor analysis with intelligent comparison</p>
               </div>
             </div>
           </motion.div>
 
           {!results ? (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-            >
-              <Card className="p-8 bg-white shadow-xl">
-                <form onSubmit={handleSubmit}>
-                  <div className="space-y-6">
-                    <div>
-                      <Label htmlFor="title" className="text-slate-700 font-medium">Project Title *</Label>
-                      <Input
-                        id="title"
-                        data-testid="project-title-input"
-                        value={formData.title}
-                        onChange={(e) => setFormData({...formData, title: e.target.value})}
-                        placeholder="e.g., ERP Vendor Analysis for Manufacturing"
-                        required
-                        className="mt-2 bg-slate-50 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="problem" className="text-slate-700 font-medium">Problem Statement *</Label>
-                      <p className="text-sm text-slate-500 mb-2">Describe your research objective. AI will auto-detect industry and suggest vendors.</p>
-                      <Textarea
-                        id="problem"
-                        data-testid="problem-statement-input"
-                        value={formData.problem}
-                        onChange={(e) => setFormData({...formData, problem: e.target.value})}
-                        placeholder="e.g., We need to evaluate ERP solutions for our mid-size manufacturing company..."
-                        rows={5}
-                        required
-                        className="mt-2 bg-slate-50 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
-                      />
-                    </div>
-
-                    {(suggestedVendors.length > 0 || detectedIndustry) && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        className="p-4 bg-blue-50 border border-blue-200 rounded-lg"
-                      >
-                        <div className="flex items-start gap-2">
-                          <Sparkles className="w-5 h-5 text-blue-600 mt-0.5" />
-                          <div className="flex-1">
-                            <p className="font-medium text-blue-900 mb-2">AI Detected Context</p>
-                            {detectedIndustry && (
-                              <p className="text-sm text-blue-700 mb-2">Industry: <span className="font-semibold">{detectedIndustry}</span></p>
-                            )}
-                            {suggestedVendors.length > 0 && (
-                              <div>
-                                <p className="text-sm text-blue-700 mb-1">Suggested vendors:</p>
-                                <div className="flex flex-wrap gap-2">
-                                  {suggestedVendors.map((vendor, idx) => (
-                                    <button
-                                      key={idx}
-                                      type="button"
-                                      onClick={() => setFormData({...formData, vendorName: vendor})}
-                                      className="px-3 py-1 text-xs bg-white border border-blue-300 rounded-full hover:bg-blue-50 transition-colors"
-                                    >
-                                      {vendor}
-                                    </button>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </motion.div>
-                    )}
-
-                    <div>
-                      <Label htmlFor="files" className="text-slate-700 font-medium">Upload Additional Context (Optional)</Label>
-                      <p className="text-sm text-slate-500 mb-2">Upload PDF or Excel files with company data, reports, or financials</p>
-                      <input
-                        id="files"
-                        type="file"
-                        multiple
-                        accept=".pdf,.xlsx,.xls"
-                        onChange={handleFileUpload}
-                        className="mt-2 block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                      />
-                      {uploadedFiles.length > 0 && (
-                        <div className="mt-3 space-y-2">
-                          {uploadedFiles.map((file, idx) => (
-                            <div key={idx} className="flex items-center gap-2 text-xs text-slate-600 bg-green-50 p-2 rounded">
-                              <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                              </svg>
-                              {file.filename} ({file.type})
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="vendor" className="text-slate-700 font-medium">Vendor Name (Optional)</Label>
-                        <p className="text-sm text-slate-500 mb-2">Leave blank for AI to suggest</p>
-                        <Input
-                          id="vendor"
-                          data-testid="vendor-name-input"
-                          value={formData.vendorName}
-                          onChange={(e) => setFormData({...formData, vendorName: e.target.value})}
-                          placeholder="e.g., SAP"
-                          className="mt-2 bg-slate-50 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="industry" className="text-slate-700 font-medium">Industry (Optional)</Label>
-                        <p className="text-sm text-slate-500 mb-2">AI will auto-detect</p>
-                        <Input
-                          id="industry"
-                          data-testid="industry-input"
-                          value={formData.industry}
-                          onChange={(e) => setFormData({...formData, industry: e.target.value})}
-                          placeholder="e.g., Manufacturing"
-                          className="mt-2 bg-slate-50 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
-                        />
-                      </div>
-                    </div>
-
-                    <Button
-                      data-testid="start-research-button"
-                      type="submit"
-                      disabled={loading}
-                      size="lg"
-                      className="w-full md:w-auto bg-slate-900 hover:bg-slate-800 text-white font-semibold shadow-lg"
-                    >
-                      {loading ? (
-                        <>
-                          <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                          Analyzing...
-                        </>
-                      ) : (
-                        <>
-                          <TrendingUp className="w-5 h-5 mr-2" />
-                          Start Research
-                        </>
-                      )}
-                    </Button>
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+              <Card className="glass-card p-8">
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div>
+                    <Label className="text-base font-medium">Project Title *</Label>
+                    <Input
+                      value={formData.title}
+                      onChange={(e) => setFormData({...formData, title: e.target.value})}
+                      placeholder="e.g., ERP Vendor Analysis for Manufacturing"
+                      required
+                      className="mt-2 input-glass"
+                      data-testid="project-title-input"
+                    />
                   </div>
+
+                  <div>
+                    <Label className="text-base font-medium">Problem Statement *</Label>
+                    <p className="text-sm text-muted-foreground mb-2">Describe your research objective. AI will auto-detect industry and suggest vendors.</p>
+                    <Textarea
+                      value={formData.problem}
+                      onChange={(e) => setFormData({...formData, problem: e.target.value})}
+                      placeholder="e.g., We need to evaluate ERP solutions for our mid-size manufacturing company..."
+                      rows={5}
+                      required
+                      className="mt-2 input-glass"
+                      data-testid="problem-statement-input"
+                    />
+                  </div>
+
+                  {(suggestedVendors.length > 0 || detectedIndustry) && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      className="p-4 glass-card bg-primary/5 border-primary/20"
+                    >
+                      <div className="flex items-start gap-3">
+                        <Sparkles className="w-5 h-5 text-primary mt-0.5" />
+                        <div className="flex-1">
+                          <p className="font-medium text-primary mb-2">AI Detected Context</p>
+                          {detectedIndustry && (
+                            <p className="text-sm text-muted-foreground mb-2">
+                              Industry: <span className="font-semibold text-foreground">{detectedIndustry}</span>
+                            </p>
+                          )}
+                          {suggestedVendors.length > 0 && (
+                            <div className="flex flex-wrap gap-2 mt-2">
+                              {suggestedVendors.map((vendor, idx) => (
+                                <button
+                                  key={idx}
+                                  type="button"
+                                  onClick={() => setFormData({...formData, vendorName: vendor})}
+                                  className={`px-3 py-1.5 text-xs rounded-full transition-all ${
+                                    formData.vendorName === vendor 
+                                      ? 'bg-primary text-primary-foreground' 
+                                      : 'bg-background border hover:border-primary'
+                                  }`}
+                                >
+                                  {vendor}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  <div>
+                    <Label className="text-base font-medium">Upload Context (Optional)</Label>
+                    <p className="text-sm text-muted-foreground mb-2">Add PDF or Excel files with company data</p>
+                    <input
+                      type="file"
+                      multiple
+                      accept=".pdf,.xlsx,.xls"
+                      onChange={handleFileUpload}
+                      className="mt-2 block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
+                    />
+                    {uploadedFiles.length > 0 && (
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {uploadedFiles.map((file, idx) => (
+                          <span key={idx} className="px-3 py-1 text-xs bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-full">
+                            ✓ {file.filename}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-base font-medium">Vendor Name (Optional)</Label>
+                      <Input
+                        value={formData.vendorName}
+                        onChange={(e) => setFormData({...formData, vendorName: e.target.value})}
+                        placeholder="e.g., SAP"
+                        className="mt-2 input-glass"
+                        data-testid="vendor-name-input"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-base font-medium">Industry (Optional)</Label>
+                      <Input
+                        value={formData.industry}
+                        onChange={(e) => setFormData({...formData, industry: e.target.value})}
+                        placeholder="e.g., Manufacturing"
+                        className="mt-2 input-glass"
+                        data-testid="industry-input"
+                      />
+                    </div>
+                  </div>
+
+                  <Button
+                    type="submit"
+                    disabled={loading}
+                    size="lg"
+                    className="btn-primary w-full md:w-auto"
+                    data-testid="start-research-button"
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                        Analyzing...
+                      </>
+                    ) : (
+                      <>
+                        <TrendingUp className="w-5 h-5 mr-2" />
+                        Start Research
+                      </>
+                    )}
+                  </Button>
                 </form>
               </Card>
             </motion.div>
           ) : (
             <div className="space-y-6">
-              <Card className="p-8 bg-white shadow-xl" data-testid="research-results">
-                <h2 className="text-2xl font-bold text-slate-900 mb-6">AI-Powered Research Results</h2>
-                
-                <div className="space-y-6">
-                  {/* Primary Vendor Info */}
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div className="p-4 bg-blue-50 rounded-lg">
-                      <p className="text-sm text-blue-600 font-medium mb-1">Primary Vendor</p>
-                      <p className="text-xl font-bold text-slate-900">{results.vendor_name}</p>
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+                <Card className="glass-card p-8" data-testid="research-results">
+                  <h2 className="text-2xl font-bold mb-6 gradient-text">Research Results</h2>
+                  
+                  {/* Primary Info */}
+                  <div className="grid md:grid-cols-2 gap-4 mb-8">
+                    <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20">
+                      <p className="text-sm text-blue-600 dark:text-blue-400 font-medium mb-1">Primary Vendor</p>
+                      <p className="text-xl font-bold">{results.vendor_name}</p>
                     </div>
-                    <div className="p-4 bg-purple-50 rounded-lg">
-                      <p className="text-sm text-purple-600 font-medium mb-1">Industry</p>
-                      <p className="text-xl font-bold text-slate-900">{results.industry}</p>
+                    <div className="p-4 rounded-xl bg-purple-500/10 border border-purple-500/20">
+                      <p className="text-sm text-purple-600 dark:text-purple-400 font-medium mb-1">Industry</p>
+                      <p className="text-xl font-bold">{results.industry}</p>
                     </div>
                   </div>
 
-                  {/* Market Position Analysis */}
-                  <div className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
-                    <h3 className="font-semibold text-lg text-slate-900 mb-3">📊 Market Position</h3>
-                    <p className="text-slate-700 leading-relaxed">
-                      {results.analysis?.market_position}
-                    </p>
+                  {/* Market Position */}
+                  <div className="p-6 glass-card bg-gradient-to-r from-blue-500/5 to-purple-500/5 mb-8">
+                    <h3 className="font-semibold text-lg mb-3">📊 Market Position</h3>
+                    <p className="text-muted-foreground leading-relaxed">{results.analysis?.market_position}</p>
                   </div>
 
-                  {/* Vendor Comparison Section */}
+                  {/* Vendor Comparison */}
                   {results.vendor_comparison && Object.keys(results.vendor_comparison).length > 0 && (
-                    <div>
-                      <h3 className="font-bold text-xl text-slate-900 mb-4">🏆 Vendor Comparison</h3>
+                    <div className="mb-8">
+                      <h3 className="font-bold text-xl mb-4 flex items-center gap-2">
+                        <Trophy className="w-5 h-5 text-amber-500" />
+                        Vendor Comparison
+                      </h3>
                       
                       {/* Winner Banner */}
                       {results.recommended_vendor && (
-                        <div className="mb-6 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200">
+                        <div className="mb-6 p-4 glass-card bg-gradient-to-r from-emerald-500/10 to-green-500/10 border-emerald-500/20">
                           <div className="flex items-center gap-3">
-                            <div className="text-3xl">🥇</div>
+                            <span className="text-3xl">🥇</span>
                             <div>
-                              <p className="text-sm text-green-600 font-medium">Recommended Vendor</p>
-                              <p className="text-xl font-bold text-slate-900">{results.recommended_vendor}</p>
+                              <p className="text-sm text-emerald-600 dark:text-emerald-400 font-medium">Recommended Vendor</p>
+                              <p className="text-xl font-bold">{results.recommended_vendor}</p>
                               {results.recommendation_reason && (
-                                <p className="text-sm text-slate-600 mt-1">{results.recommendation_reason}</p>
+                                <p className="text-sm text-muted-foreground mt-1">{results.recommendation_reason}</p>
                               )}
                             </div>
                           </div>
@@ -365,98 +349,79 @@ export default function Research() {
                       )}
 
                       {/* Comparison Table */}
-                      <div className="overflow-x-auto">
+                      <div className="overflow-x-auto rounded-xl border border-border">
                         <table className="w-full text-sm">
                           <thead>
-                            <tr className="bg-slate-100">
-                              <th className="px-4 py-3 text-left font-semibold text-slate-700">Vendor</th>
-                              <th className="px-4 py-3 text-center font-semibold text-slate-700">Score</th>
-                              <th className="px-4 py-3 text-center font-semibold text-slate-700">Features</th>
-                              <th className="px-4 py-3 text-center font-semibold text-slate-700">Pricing</th>
-                              <th className="px-4 py-3 text-center font-semibold text-slate-700">Ease of Use</th>
-                              <th className="px-4 py-3 text-center font-semibold text-slate-700">Support</th>
-                              <th className="px-4 py-3 text-left font-semibold text-slate-700">Best For</th>
+                            <tr className="bg-muted/50">
+                              <th className="px-4 py-3 text-left font-semibold">Vendor</th>
+                              <th className="px-4 py-3 text-center font-semibold">Score</th>
+                              <th className="px-4 py-3 text-center font-semibold">Features</th>
+                              <th className="px-4 py-3 text-center font-semibold">Pricing</th>
+                              <th className="px-4 py-3 text-center font-semibold">Ease of Use</th>
+                              <th className="px-4 py-3 text-left font-semibold">Best For</th>
                             </tr>
                           </thead>
                           <tbody>
                             {Object.entries(results.vendor_comparison)
                               .sort((a, b) => (b[1].total_score || 0) - (a[1].total_score || 0))
                               .map(([vendorName, data], idx) => (
-                                <tr key={vendorName} className={`border-b border-slate-100 ${idx === 0 ? 'bg-green-50' : ''}`}>
+                                <tr key={vendorName} className={`border-t border-border ${idx === 0 ? 'bg-emerald-500/5' : ''}`}>
                                   <td className="px-4 py-3">
                                     <div className="flex items-center gap-2">
-                                      {idx === 0 && <span className="text-lg">🥇</span>}
-                                      {idx === 1 && <span className="text-lg">🥈</span>}
-                                      {idx === 2 && <span className="text-lg">🥉</span>}
-                                      <span className="font-medium text-slate-900">{vendorName}</span>
+                                      {idx === 0 && <span>🥇</span>}
+                                      {idx === 1 && <span>🥈</span>}
+                                      {idx === 2 && <span>🥉</span>}
+                                      <span className="font-medium">{vendorName}</span>
                                     </div>
                                   </td>
                                   <td className="px-4 py-3 text-center">
-                                    <span className={`px-2 py-1 rounded-full text-xs font-bold ${
-                                      (data.total_score || 0) >= 8 ? 'bg-green-100 text-green-700' :
-                                      (data.total_score || 0) >= 7 ? 'bg-blue-100 text-blue-700' :
-                                      'bg-amber-100 text-amber-700'
-                                    }`}>
+                                    <span className={`px-2 py-1 rounded-full text-xs font-bold ${getScoreColor(data.total_score)}`}>
                                       {(data.total_score || 0).toFixed(1)}
                                     </span>
                                   </td>
-                                  <td className="px-4 py-3 text-center">{data.scores?.features?.toFixed(1) || '-'}</td>
-                                  <td className="px-4 py-3 text-center">{data.scores?.pricing?.toFixed(1) || '-'}</td>
-                                  <td className="px-4 py-3 text-center">{data.scores?.ease_of_use?.toFixed(1) || '-'}</td>
-                                  <td className="px-4 py-3 text-center">{data.scores?.support?.toFixed(1) || '-'}</td>
-                                  <td className="px-4 py-3 text-xs text-slate-600">{data.best_for || '-'}</td>
+                                  <td className="px-4 py-3 text-center mono">{data.scores?.features?.toFixed(1) || '-'}</td>
+                                  <td className="px-4 py-3 text-center mono">{data.scores?.pricing?.toFixed(1) || '-'}</td>
+                                  <td className="px-4 py-3 text-center mono">{data.scores?.ease_of_use?.toFixed(1) || '-'}</td>
+                                  <td className="px-4 py-3 text-xs text-muted-foreground">{data.best_for || '-'}</td>
                                 </tr>
                               ))}
                           </tbody>
                         </table>
                       </div>
 
-                      {/* Detailed Vendor Cards */}
+                      {/* Vendor Cards */}
                       <div className="mt-6 grid md:grid-cols-2 gap-4">
                         {Object.entries(results.vendor_comparison)
                           .sort((a, b) => (b[1].total_score || 0) - (a[1].total_score || 0))
                           .slice(0, 4)
                           .map(([vendorName, data], idx) => (
-                            <div key={vendorName} className={`p-4 rounded-lg border ${idx === 0 ? 'border-green-200 bg-green-50' : 'border-slate-200 bg-white'}`}>
+                            <div key={vendorName} className={`p-4 rounded-xl border ${idx === 0 ? 'border-emerald-500/30 bg-emerald-500/5' : 'border-border'}`}>
                               <div className="flex justify-between items-start mb-3">
-                                <h4 className="font-bold text-slate-900">{vendorName}</h4>
-                                <span className={`px-2 py-1 rounded-full text-xs font-bold ${
-                                  (data.total_score || 0) >= 8 ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
-                                }`}>
+                                <h4 className="font-bold">{vendorName}</h4>
+                                <span className={`px-2 py-1 rounded-full text-xs font-bold ${getScoreColor(data.total_score)}`}>
                                   {(data.total_score || 0).toFixed(1)}/10
                                 </span>
                               </div>
                               
-                              {data.strengths && data.strengths.length > 0 && (
+                              {data.strengths?.length > 0 && (
                                 <div className="mb-3">
-                                  <p className="text-xs font-semibold text-green-600 mb-1">Strengths:</p>
-                                  <ul className="text-xs text-slate-600 space-y-1">
-                                    {data.strengths.slice(0, 3).map((s, i) => (
-                                      <li key={i} className="flex items-start gap-1">
-                                        <span className="text-green-500">✓</span> {s}
-                                      </li>
+                                  <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mb-1">Strengths:</p>
+                                  <ul className="text-xs text-muted-foreground space-y-1">
+                                    {data.strengths.slice(0, 2).map((s, i) => (
+                                      <li key={i}>✓ {s}</li>
                                     ))}
                                   </ul>
                                 </div>
                               )}
                               
-                              {data.weaknesses && data.weaknesses.length > 0 && (
+                              {data.weaknesses?.length > 0 && (
                                 <div>
-                                  <p className="text-xs font-semibold text-red-600 mb-1">Considerations:</p>
-                                  <ul className="text-xs text-slate-600 space-y-1">
+                                  <p className="text-xs font-semibold text-red-600 dark:text-red-400 mb-1">Considerations:</p>
+                                  <ul className="text-xs text-muted-foreground space-y-1">
                                     {data.weaknesses.slice(0, 2).map((w, i) => (
-                                      <li key={i} className="flex items-start gap-1">
-                                        <span className="text-red-500">•</span> {w}
-                                      </li>
+                                      <li key={i}>• {w}</li>
                                     ))}
                                   </ul>
-                                </div>
-                              )}
-                              
-                              {data.pricing_tier && (
-                                <div className="mt-3 pt-2 border-t border-slate-200">
-                                  <span className="text-xs text-slate-500">Pricing: </span>
-                                  <span className="text-xs font-medium text-slate-700">{data.pricing_tier}</span>
                                 </div>
                               )}
                             </div>
@@ -465,66 +430,31 @@ export default function Research() {
                     </div>
                   )}
 
-                  {/* Key Capabilities */}
-                  {results.analysis?.key_capabilities && results.analysis.key_capabilities.length > 0 && (
-                    <div>
-                      <h3 className="font-semibold text-slate-900 mb-3">Key Capabilities</h3>
-                      <ul className="space-y-2">
-                        {results.analysis.key_capabilities.map((cap, idx) => (
-                          <li key={idx} className="flex items-start gap-2 text-slate-700">
-                            <div className="w-1.5 h-1.5 rounded-full bg-green-500 mt-2 flex-shrink-0" />
-                            {cap}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
                   {/* Recommendations */}
-                  {results.recommendations && results.recommendations.length > 0 && (
-                    <div>
-                      <h3 className="font-semibold text-slate-900 mb-3">Strategic Recommendations</h3>
+                  {results.recommendations?.length > 0 && (
+                    <div className="mb-8">
+                      <h3 className="font-semibold text-lg mb-4">Strategic Recommendations</h3>
                       <div className="space-y-3">
                         {results.recommendations.map((rec, idx) => (
-                          <div key={idx} className="p-4 bg-amber-50 border-l-4 border-amber-400 rounded-r-lg">
+                          <div key={idx} className="p-4 rounded-xl bg-amber-500/10 border-l-4 border-amber-500">
                             <div className="flex items-start gap-3">
-                              <span className="text-amber-600 font-bold">{idx + 1}.</span>
-                              <p className="text-slate-700">{rec}</p>
+                              <span className="text-amber-600 dark:text-amber-400 font-bold">{idx + 1}.</span>
+                              <p className="text-muted-foreground">{rec}</p>
                             </div>
                           </div>
                         ))}
                       </div>
                     </div>
                   )}
+                </Card>
+              </motion.div>
 
-                  {/* Considerations/Risks */}
-                  {results.analysis?.considerations && results.analysis.considerations.length > 0 && (
-                    <div>
-                      <h3 className="font-semibold text-slate-900 mb-3">Considerations & Risks</h3>
-                      <div className="space-y-2">
-                        {results.analysis.considerations.map((item, idx) => (
-                          <div key={idx} className="p-3 bg-red-50 border-l-4 border-red-300 rounded-r-lg">
-                            <p className="text-sm text-slate-700">⚠️ {item}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </Card>
-
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Button
-                  data-testid="download-deliverable-button"
-                  onClick={handleDownloadDeliverable}
-                  size="lg"
-                  className="bg-slate-900 hover:bg-slate-800 text-white font-semibold shadow-lg"
-                >
+              <div className="flex flex-wrap gap-4">
+                <Button onClick={handleDownloadDeliverable} size="lg" className="btn-primary" data-testid="download-deliverable-button">
                   <Download className="w-5 h-5 mr-2" />
                   Generate Excel Report
                 </Button>
                 <Button
-                  data-testid="new-research-button"
                   onClick={() => {
                     setResults(null);
                     setFormData({ title: '', problem: '', vendorName: '', industry: '' });
@@ -533,7 +463,8 @@ export default function Research() {
                   }}
                   variant="outline"
                   size="lg"
-                  className="border-2 border-slate-200 hover:border-slate-300 font-semibold"
+                  className="glass-card"
+                  data-testid="new-research-button"
                 >
                   New Research
                 </Button>
