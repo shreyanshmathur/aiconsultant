@@ -144,8 +144,8 @@ Be concise and actionable."""
     def _structure_response(self, vendor: str, industry: str, problem: str, ai_text: str) -> Dict:
         """Structure AI response into consistent format"""
         
-        # Parse AI response - handle both markdown and plain formats
-        lines = [line.strip() for line in ai_text.split('\\n') if line.strip()]
+        # Parse AI response - handle both markdown and plain formats (fix newline parsing)
+        lines = [line.strip() for line in ai_text.split('\n') if line.strip()]
         
         # Extract sections
         market_position = []
