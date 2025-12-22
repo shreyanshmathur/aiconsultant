@@ -83,9 +83,9 @@ class GroqAgent(ConsultantAgent):
     """Agent that uses Groq API"""
     
     def generate_response(self, context: str, previous_arguments: List[Dict] = None) -> str:
-        api_key = os.getenv('GROQ_API_KEY', '')
+        api_key = get_api_key_from_pool('groq')
         if not api_key:
-            return f"[{self.name}] API key not configured. Please add GROQ_API_KEY to settings."
+            return f"[{self.name}] API key not configured."
         
         prompt = self._build_prompt(context, previous_arguments)
         
