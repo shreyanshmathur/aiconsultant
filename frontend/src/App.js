@@ -1,5 +1,6 @@
 import "@/index.css";
 import "@/App.css";
+import "@/enhanced.css";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
 import Dashboard from "./pages/Dashboard";
