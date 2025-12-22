@@ -26,11 +26,11 @@ export default function Deliverables() {
   const fetchData = async () => {
     try {
       const [projectsRes, filesRes] = await Promise.all([
-        axios.get(`${API}/projects`, { withCredentials: true }),
-        axios.get(`${API}/deliverables`)
+        axios.get(`${API}/projects`, { withCredentials: true }).catch(() => ({ data: [] })),
+        axios.get(`${API}/deliverables`).catch(() => ({ data: { files: [] } }))
       ]);
-      setProjects(projectsRes.data);
-      setAllFiles(filesRes.data.files || []);
+      setProjects(projectsRes.data || []);
+      setAllFiles(filesRes.data?.files || []);
     } catch (error) {
       console.error('Failed to fetch data:', error);
     } finally {
