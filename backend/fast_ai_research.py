@@ -124,10 +124,10 @@ Be concise and actionable."""
             return self._intelligent_fallback(vendor_name, industry, problem, additional_context)
     
     def _structure_response(self, vendor: str, industry: str, problem: str, ai_text: str) -> Dict:
-        """Structure AI response"""
+        """Structure AI response into consistent format"""
         
-        # Parse AI response
-        lines = ai_text.split('\\n')
+        # Parse AI response - handle both markdown and plain formats
+        lines = [l.strip() for l in ai_text.split('\\n') if l.strip()]
         
         # Extract sections
         market_position = []
@@ -136,63 +136,61 @@ Be concise and actionable."""
         risks = []
         
         current_section = None
-        for line in lines:
-            line = line.strip()
-            if not line:
+        for i, line in enumerate(lines):
+            line_lower = line.lower()
+            
+            # Detect section headers (with or without markdown)
+            if 'market' in line_lower and 'position' in line_lower:
+                current_section = 'market'
+                # Try to get content on same line or next line
+                if ':' in line:
+                    content = line.split(':', 1)[1].strip().lstrip('*').strip()
+                    if len(content) > 20:
+                        market_position.append(content)
+                elif i + 1 < len(lines):
+                    market_position.append(lines[i+1].lstrip('*-•').strip())
+                continue
+                
+            elif ('capabilit' in line_lower or 'strength' in line_lower or 'feature' in line_lower) and not line.startswith(('-', '•', '*', '1', '2', '3', '4', '5')):
+                current_section = 'capabilities'
+                continue
+                
+            elif 'recommend' in line_lower and not line.startswith(('-', '•', '*', '1', '2', '3', '4', '5')):
+                current_section = 'recommendations'
+                continue
+                
+            elif ('risk' in line_lower or 'consider' in line_lower or 'challeng' in line_lower) and not line.startswith(('-', '•', '*', '1', '2', '3', '4', '5')):
+                current_section = 'risks'
                 continue
             
-            # Detect sections
-            if 'market' in line.lower() and 'position' in line.lower():
-                current_section = 'market'
-            elif 'capabilit' in line.lower() or 'strength' in line.lower():
-                current_section = 'capabilities'
-            elif 'recommend' in line.lower():
-                current_section = 'recommendations'
-            elif 'risk' in line.lower() or 'consider' in line.lower():
-                current_section = 'risks'
+            # Capture bullet points and numbered items
+            is_bullet = line.startswith(('-', '•', '*')) or (len(line) > 2 and line[0].isdigit() and line[1] in '.)')
             
-            # Capture bullet points
-            if line.startswith(('-', '•', '*')) or line[0:2].replace('.', '').isdigit():
-                clean = line.lstrip('-•*0123456789. ').strip()
-                if len(clean) > 15:
+            if is_bullet and current_section:
+                clean = line.lstrip('-•*0123456789.)').strip()
+                if len(clean) > 15:  # Meaningful content
                     if current_section == 'capabilities' and len(capabilities) < 5:
                         capabilities.append(clean)
                     elif current_section == 'recommendations' and len(recommendations) < 5:
                         recommendations.append(clean)
                     elif current_section == 'risks' and len(risks) < 5:
                         risks.append(clean)
-                    elif current_section == 'market' and len(market_position) < 3:
+                    elif current_section == 'market' and len(market_position) < 2:
                         market_position.append(clean)
         
-        # Fallback if parsing failed
-        if not capabilities:
-            capabilities = [
-                f"Enterprise-grade {industry.lower()} solutions with proven track record",
-                "Global deployment capabilities with 24/7 support infrastructure",
-                "Comprehensive ecosystem of integrations and partner solutions",
-                "Strong R&D investment in emerging technologies and innovation",
-                "Industry-specific features and best practices built-in"
-            ]
+        # If parsing failed, use intelligent fallback
+        if not capabilities or not recommendations:
+            print("⚠️ AI parsing incomplete, enriching with intelligent fallback")
+            fallback = self._intelligent_fallback(vendor, industry, problem, None)
+            
+            if not capabilities:
+                capabilities = fallback['analysis']['key_capabilities']
+            if not recommendations:
+                recommendations = fallback['recommendations']
+            if not risks:
+                risks = fallback['analysis']['considerations']
         
-        if not recommendations:
-            recommendations = [
-                f"Conduct comprehensive vendor evaluation across top 3-4 {industry.lower()} providers",
-                "Request detailed product demonstrations focused on your specific use cases",
-                "Review customer case studies from companies of similar size and complexity",
-                "Develop clear evaluation criteria including TCO, implementation timeline, and support model",
-                "Plan proof-of-concept with measurable success criteria before full commitment"
-            ]
-        
-        if not risks:
-            risks = [
-                "Implementation complexity may require 6-12 months and significant resources",
-                "Total cost of ownership includes licenses, implementation, training, and ongoing maintenance",
-                "Change management challenges with user adoption and process transformation",
-                "Vendor lock-in considerations for long-term technology strategy",
-                "Integration requirements with existing systems may be more complex than anticipated"
-            ]
-        
-        market_summary = ' '.join(market_position[:2]) if market_position else f"{vendor} is a leading {industry} vendor with substantial market presence and proven enterprise deployments across Fortune 500 companies."
+        market_summary = ' '.join(market_position) if market_position else f"{vendor} is a leading {industry} vendor with substantial market presence and strong enterprise customer base."
         
         return {
             "vendor_name": vendor,
@@ -200,16 +198,20 @@ Be concise and actionable."""
             "problem_statement": problem,
             "data_driven": True,
             "ai_powered": True,
-            "sources_used": ["AI Analysis", "Industry Knowledge Base", "Best Practices"],
+            "sources_used": ["AI Analysis (Llama 3.3)", "Industry Best Practices"],
             "analysis": {
                 "market_position": market_summary,
-                "key_capabilities": capabilities,
-                "considerations": risks
+                "key_capabilities": capabilities[:5],
+                "considerations": risks[:5] if risks else [
+                    "Implementation timeline and resource requirements need careful planning",
+                    "Change management critical for user adoption and ROI realization",
+                    "Integration complexity with existing systems should be assessed early"
+                ]
             },
-            "recommendations": recommendations,
+            "recommendations": recommendations[:5],
             "ai_analysis_full": ai_text,
             "suggested_vendors": self._get_competitors(vendor),
-            "confidence": "high" if len(ai_text) > 500 else "medium"
+            "confidence": "high"
         }
     
     def _get_competitors(self, vendor: str) -> List[str]:
