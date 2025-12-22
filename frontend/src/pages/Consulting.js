@@ -205,34 +205,103 @@ export default function Consulting() {
 
           {stage === 'results' && debateData && (
             <div className="space-y-6">
-              <Card className="p-8" data-testid="debate-results">
-                <h2 className="text-2xl font-bold mb-6">Consensus & Recommendations</h2>
+              <Card className="p-8 bg-white shadow-xl" data-testid="debate-results">
+                <h2 className="text-3xl font-bold text-slate-900 mb-6">Consulting Analysis Complete</h2>
                 
-                <div className="space-y-6">
-                  <div>
-                    <h3 className="font-semibold mb-2">Summary</h3>
-                    <p className="text-muted-foreground">
+                <div className="space-y-8">
+                  {/* Summary */}
+                  <div className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                    <h3 className="font-bold text-xl text-slate-900 mb-3">Executive Summary</h3>
+                    <p className="text-slate-700 leading-relaxed">
                       {debateData.consensus?.summary}
                     </p>
                   </div>
 
-                  <div>
-                    <h3 className="font-semibold mb-2">Key Recommendations</h3>
-                    <ul className="list-disc list-inside space-y-2 text-muted-foreground">
-                      {debateData.consensus?.recommendations?.map((rec, idx) => (
-                        <li key={idx}>{rec}</li>
-                      ))}
-                    </ul>
-                  </div>
+                  {/* Key Insights */}
+                  {debateData.consensus?.key_insights && (
+                    <div>
+                      <h3 className="font-bold text-xl text-slate-900 mb-4">Key Insights</h3>
+                      <div className="space-y-3">
+                        {debateData.consensus.key_insights.map((insight, idx) => (
+                          <div key={idx} className="p-4 bg-amber-50 border-l-4 border-amber-500 rounded">
+                            <p className="text-slate-800">{insight}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
-                  <div>
-                    <h3 className="font-semibold mb-2">Next Steps</h3>
-                    <ol className="list-decimal list-inside space-y-2 text-muted-foreground">
-                      {debateData.consensus?.next_steps?.map((step, idx) => (
-                        <li key={idx}>{step}</li>
-                      ))}
-                    </ol>
-                  </div>
+                  {/* Recommendations */}
+                  {debateData.consensus?.recommendations && (
+                    <div>
+                      <h3 className="font-bold text-xl text-slate-900 mb-4">Strategic Recommendations</h3>
+                      <div className="grid md:grid-cols-2 gap-4">
+                        {debateData.consensus.recommendations.map((rec, idx) => (
+                          <div key={idx} className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                            <div className="flex items-start gap-3">
+                              <div className="w-6 h-6 rounded-full bg-green-500 text-white flex items-center justify-center flex-shrink-0 text-sm font-bold">
+                                {idx + 1}
+                              </div>
+                              <p className="text-slate-700 flex-1">{rec}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Next Steps Timeline */}
+                  {debateData.consensus?.next_steps && (
+                    <div>
+                      <h3 className="font-bold text-xl text-slate-900 mb-4">Implementation Timeline</h3>
+                      <div className="space-y-3">
+                        {debateData.consensus.next_steps.map((step, idx) => (
+                          <div key={idx} className="flex items-start gap-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                            <div className="text-2xl">{idx === 0 ? '📅' : idx === debateData.consensus.next_steps.length - 1 ? '♾️' : '⏱️'}</div>
+                            <p className="text-slate-700 flex-1">{step}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Risk Factors */}
+                  {debateData.consensus?.risk_factors && (
+                    <div>
+                      <h3 className="font-bold text-xl text-slate-900 mb-4">Risk Factors & Considerations</h3>
+                      <div className="space-y-2">
+                        {debateData.consensus.risk_factors.map((risk, idx) => (
+                          <div key={idx} className="p-4 bg-red-50 border-l-4 border-red-400 rounded">
+                            <p className="text-slate-700">{risk}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Estimated Impact */}
+                  {debateData.consensus?.estimated_impact && (
+                    <div className="p-6 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200">
+                      <h3 className="font-bold text-xl text-slate-900 mb-4">Estimated Impact</h3>
+                      <div className="grid md:grid-cols-3 gap-4">
+                        <div className="text-center">
+                          <div className="text-3xl mb-2">📈</div>
+                          <div className="text-sm text-slate-600 mb-1">ARR Growth</div>
+                          <div className="font-semibold text-slate-900">{debateData.consensus.estimated_impact.arr_growth}</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-3xl mb-2">💰</div>
+                          <div className="text-sm text-slate-600 mb-1">CAC Reduction</div>
+                          <div className="font-semibold text-slate-900">{debateData.consensus.estimated_impact.cac_reduction}</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-3xl mb-2">⏰</div>
+                          <div className="text-sm text-slate-600 mb-1">Timeline</div>
+                          <div className="font-semibold text-slate-900">{debateData.consensus.estimated_impact.timeline}</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </Card>
 
