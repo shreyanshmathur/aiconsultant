@@ -26,6 +26,37 @@ export default function Research() {
   const [results, setResults] = useState(null);
   const [suggestedVendors, setSuggestedVendors] = useState([]);
   const [detectedIndustry, setDetectedIndustry] = useState(null);
+  const [uploadedFiles, setUploadedFiles] = useState([]);
+  const [uploadedContext, setUploadedContext] = useState('');
+
+  const handleFileUpload = async (event) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+
+    const formData = new FormData();
+    for (let i = 0; i < files.length; i++) {
+      formData.append('files', files[i]);
+    }
+
+    try {
+      const response = await axios.post(`${API}/research/upload`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      
+      setUploadedFiles(response.data.extracted_content);
+      
+      // Combine extracted content
+      const combinedContext = response.data.extracted_content
+        .map(f => `${f.filename}:\n${f.content}`)
+        .join('\n\n');
+      setUploadedContext(combinedContext);
+      
+      toast.success(`${response.data.files_processed} file(s) processed successfully`);
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error('Failed to upload files');
+    }
+  };
 
   useEffect(() => {
     if (formData.problem && formData.problem.length > 20) {
