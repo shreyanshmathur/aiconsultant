@@ -311,8 +311,7 @@ Be specific, data-driven, and actionable. Use the real data provided above."""
                 "key_capabilities": self._extract_list_items(ai_text, ["capabilities", "strengths", "advantages"]),
                 "considerations": self._extract_list_items(ai_text, ["risks", "considerations", "challenges"])
             },
-            "recommendations": self._extract_list_items(ai_text, ["recommendations", "suggest", "should"]),
-            "competitors": await self._fetch_competitors(vendor_name, industry)
+            "recommendations": self._extract_list_items(ai_text, ["recommendations", "suggest", "should"])
         }
     
     def _extract_section(self, text: str, keyword: str) -> str:
