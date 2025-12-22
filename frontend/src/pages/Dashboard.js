@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
-import { FileText, Users, Database, Search } from 'lucide-react';
+import { FileText, Users, Database, Search, Sparkles, Zap, TrendingUp } from 'lucide-react';
+import ParticleBackground from '../components/ParticleBackground';
+import '../enhanced.css';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -14,15 +17,24 @@ export default function Dashboard() {
       title: 'Research Only',
       description: 'Deep vendor analysis, competitor intelligence, and market research',
       icon: Search,
-      color: 'accent'
+      gradient: 'from-purple-600 to-blue-600',
+      color: 'bg-gradient-to-r from-purple-600 to-blue-600'
     },
     {
       id: 'full-consulting',
       title: 'Full Consulting',
       description: '8-agent conference room debate with comprehensive deliverables',
       icon: Users,
-      color: 'primary'
+      gradient: 'from-pink-600 to-rose-600',
+      color: 'bg-gradient-to-r from-pink-600 to-rose-600'
     }
+  ];
+
+  const stats = [
+    { value: '8', label: 'AI Consultants', icon: Users, color: 'text-purple-500' },
+    { value: '50+', label: 'Free APIs', icon: Database, color: 'text-blue-500' },
+    { value: '3', label: 'Debate Rounds', icon: Zap, color: 'text-pink-500' },
+    { value: '100%', label: 'Sector Agnostic', icon: TrendingUp, color: 'text-rose-500' }
   ];
 
   const handleStart = () => {
@@ -34,38 +46,95 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-background" style={{backgroundColor: '#F8F9FA'}}>
-      <div className="container mx-auto px-6 py-12">
-        <div className="max-w-6xl mx-auto">
-          <div className="mb-16">
-            <h1 className="text-5xl font-bold mb-4 text-foreground" data-testid="dashboard-title">
+    <div className="min-h-screen relative overflow-hidden" style={{background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)', backgroundSize: '400% 400%', animation: 'gradient-shift 15s ease infinite'}}>
+      <ParticleBackground />
+      
+      <div className="content-layer container mx-auto px-6 py-12">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="max-w-6xl mx-auto"
+        >
+          <div className="mb-16 text-center">
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.5 }}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card mb-6"
+            >
+              <Sparkles className="w-4 h-4 text-yellow-300" />
+              <span className="text-white text-sm font-medium">Powered by 8 Specialized AI Agents</span>
+            </motion.div>
+            
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.6 }}
+              className="text-6xl md:text-7xl font-bold mb-6 text-white text-glow"
+              data-testid="dashboard-title"
+            >
               Consultant AI
-            </h1>
-            <p className="text-lg text-muted-foreground">
-              McKinsey-grade consulting powered by 8 specialized AI agents
-            </p>
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4, duration: 0.6 }}
+              className="text-xl text-white/90 max-w-2xl mx-auto"
+            >
+              McKinsey-grade consulting powered by cutting-edge AI technology
+            </motion.p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8 mb-12">
-            {modes.map((mode) => {
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6, duration: 0.6 }}
+            className="grid md:grid-cols-2 gap-8 mb-12"
+          >
+            {modes.map((mode, index) => {
               const Icon = mode.icon;
               const isSelected = selectedMode === mode.id;
               
               return (
-                <Card
+                <motion.div
                   key={mode.id}
-                  data-testid={`mode-card-${mode.id}`}
-                  className={`p-8 cursor-pointer border-2 hover-scale ${
-                    isSelected ? 'border-accent shadow-lg' : 'border-border'
-                  }`}
-                  onClick={() => setSelectedMode(mode.id)}
+                  whileHover={{ scale: 1.05, y: -10 }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={{ type: 'spring', stiffness: 300 }}
                 >
-                  <Icon className={`w-12 h-12 mb-4 ${
-                    isSelected ? 'text-accent' : 'text-muted-foreground'
-                  }`} />
-                  <h3 className="text-2xl font-bold mb-2">{mode.title}</h3>
-                  <p className="text-muted-foreground">{mode.description}</p>
-                </Card>
+                  <Card
+                    data-testid={`mode-card-${mode.id}`}
+                    className={`p-8 cursor-pointer border-2 relative overflow-hidden group ${
+                      isSelected ? 'border-white glow-effect' : 'border-white/30 glass-card'
+                    }`}
+                    onClick={() => setSelectedMode(mode.id)}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r ${mode.gradient} opacity-0 group-hover:opacity-10 transition-opacity" />
+                    
+                    <div className="relative z-10">
+                      <div className={`inline-flex p-4 rounded-xl ${mode.color} mb-4 group-hover:scale-110 transition-transform`}>
+                        <Icon className="w-8 h-8 text-white" />
+                      </div>
+                      <h3 className="text-3xl font-bold mb-3 text-white">{mode.title}</h3>
+                      <p className="text-white/80 text-lg">{mode.description}</p>
+                    </div>
+                    
+                    {isSelected && (
+                      <motion.div
+                        layoutId="selected-indicator"
+                        className="absolute top-4 right-4"
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: 'spring' }}
+                      >
+                        <div className="w-6 h-6 rounded-full bg-white flex items-center justify-center">
+                          <div className="w-3 h-3 rounded-full bg-gradient-to-r ${mode.gradient}" />
+                        </div>
+                      </motion.div>
+                    )}
+                  </Card>
+                </motion.div>
               );
             })}
           </div>
