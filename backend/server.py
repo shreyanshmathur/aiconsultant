@@ -200,12 +200,12 @@ async def upload_research_files(files: List[UploadFile] = File(...)):
 # Research endpoints
 @api_router.post("/research/vendor-analysis")
 async def conduct_vendor_analysis(request: ResearchRequest):
-    """Conduct vendor analysis with optional vendor and industry"""
+    """Conduct AI-powered vendor analysis with real data"""
     
-    # Use problem statement as the main input
+    # Use AI research service for real data and analysis
     problem = request.query or "General business analysis"
     
-    results = await research_service.conduct_vendor_analysis(
+    results = await ai_research_service.conduct_ai_research(
         problem=problem,
         vendor_name=request.vendor_name,
         industry=request.industry,
