@@ -1,0 +1,47 @@
+===== uio =====
+
+Problem: A B2B SaaS client’s revenue growth has stalled despite strong retention, and they have asked you to diagnose the problem and recommend a growth strategy.
+​
+
+Case prompt
+Your client is a mid-sized B2B SaaS company based in India that sells a project-management platform to tech and professional-services teams on a subscription model.
+​
+They currently generate 20 crore INR in annual recurring revenue (ARR), grow only 5% year-on-year, but maintain a 90% logo retention rate.
+​
+
+In the last 12 months:
+
+New customer acquisition has slowed, and customer acquisition cost (CAC) has increased by 30%.
+​
+
+Most revenue comes from mid-market Indian customers; attempts to move upmarket and to expand in Southeast Asia have not meaningfully increased ARR.
+​
+
+Pricing has not changed for three years and is a simple three-tier per-seat subscription.
+​
+
+The CEO believes “we have a great product but are leaving money on the table” and wants to double ARR in three years while maintaining profitability.
+​
+
+Your task in the case
+How would you:
+
+Diagnose why growth has plateaued despite high retention.
+
+Identify the most promising levers (pricing, upsell/cross-sell, new segments, or new geographies).
+
+Recommend a concrete go-to-market and pricing strategy to reach 40 crore INR ARR in three years, outlining key initiatives and risks.
+​
+
+If you tell the preferred difficulty (easy / medium / hard) and whether you want profitability, market entry, or growth strategy, a more tailored next case can be created.
+
+Consensus: After 3 rounds of multi-agent debate, the consulting team has identified several critical areas for growth. The consensus emphasizes balancing aggressive growth targets with sustainable execution, focusing on pricing optimization, customer acquisition efficiency, and strategic market expansion.
+
+Recommendations:
+Implement dynamic pricing strategy with multiple tiers and value-based components
+Reduce CAC through targeted ABM, referral programs, and India-specific channels (UPI, Aadhaar)
+Develop upsell/cross-sell strategy for existing high-retention customer base
+Focus on India market depth (Tier 2/3 cities) before Southeast Asia expansion
+Implement product-led growth with freemium tier and viral features
+
+===== End of Presentation =====
