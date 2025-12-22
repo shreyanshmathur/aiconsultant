@@ -137,49 +137,65 @@ export default function Dashboard() {
                 </motion.div>
               );
             })}
-          </div>
+          </motion.div>
 
-          <div className="flex gap-4">
-            <Button
-              data-testid="start-button"
-              onClick={handleStart}
-              disabled={!selectedMode}
-              size="lg"
-              className="uppercase tracking-widest text-xs font-semibold"
-            >
-              Start Project
-            </Button>
-            <Button
-              data-testid="deliverables-bank-button"
-              onClick={() => navigate('/deliverables')}
-              variant="outline"
-              size="lg"
-              className="uppercase tracking-widest text-xs font-semibold"
-            >
-              <Database className="w-4 h-4 mr-2" />
-              Deliverables Bank
-            </Button>
-          </div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8, duration: 0.6 }}
+            className="flex flex-wrap gap-4 mb-16 justify-center"
+          >
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Button
+                data-testid="start-button"
+                onClick={handleStart}
+                disabled={!selectedMode}
+                size="lg"
+                className="uppercase tracking-widest text-sm font-bold px-8 py-6 bg-white text-purple-600 hover:bg-white/90 disabled:opacity-50 shadow-2xl"
+              >
+                <Zap className="w-5 h-5 mr-2" />
+                Start Project
+              </Button>
+            </motion.div>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Button
+                data-testid="deliverables-bank-button"
+                onClick={() => navigate('/deliverables')}
+                size="lg"
+                className="uppercase tracking-widest text-sm font-bold px-8 py-6 glass-card text-white border-white/30 hover:bg-white/10"
+              >
+                <Database className="w-5 h-5 mr-2" />
+                Deliverables Bank
+              </Button>
+            </motion.div>
+          </motion.div>
 
-          <div className="mt-16 grid md:grid-cols-4 gap-6">
-            <div className="text-center">
-              <div className="text-4xl font-bold text-accent mb-2">8</div>
-              <div className="text-sm text-muted-foreground">AI Consultants</div>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl font-bold text-accent mb-2">50+</div>
-              <div className="text-sm text-muted-foreground">Free APIs</div>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl font-bold text-accent mb-2">3</div>
-              <div className="text-sm text-muted-foreground">Debate Rounds</div>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl font-bold text-accent mb-2">100%</div>
-              <div className="text-sm text-muted-foreground">Sector Agnostic</div>
-            </div>
-          </div>
-        </div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1, duration: 0.6 }}
+            className="grid grid-cols-2 md:grid-cols-4 gap-6"
+          >
+            {stats.map((stat, index) => {
+              const StatIcon = stat.icon;
+              return (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 1 + index * 0.1 }}
+                  whileHover={{ y: -5 }}
+                >
+                  <Card className="p-6 text-center glass-card border-white/20 hover:border-white/40 transition-all">
+                    <StatIcon className={`w-8 h-8 mx-auto mb-3 ${stat.color}`} />
+                    <div className="text-4xl font-bold text-white mb-2">{stat.value}</div>
+                    <div className="text-sm text-white/70">{stat.label}</div>
+                  </Card>
+                </motion.div>
+              );
+            })}
+          </motion.div>
+        </motion.div>
       </div>
     </div>
   );
