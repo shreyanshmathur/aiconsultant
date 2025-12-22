@@ -102,7 +102,8 @@ export default function Research() {
         project_id: projectId,
         problem: formData.problem,
         vendor_name: formData.vendorName || null,
-        industry: formData.industry || null
+        industry: formData.industry || null,
+        additional_context: uploadedContext || null
       });
 
       setResults(researchResponse.data);
