@@ -109,7 +109,7 @@ Be concise and actionable."""
                 print("⚠️ No API key, using intelligent fallback")
                 return self._intelligent_fallback(vendor_name, industry, problem, additional_context)
             
-            print(f"🤖 Calling AI with Llama 3.3...")
+            print("🤖 Calling AI with Llama 3.3...")
             response = requests.post(
                 url="https://openrouter.ai/api/v1/chat/completions",
                 headers={
@@ -385,7 +385,7 @@ Be concise and actionable."""
         
         recommendations.extend([
             f"🔍 Conduct side-by-side demos with top 3: {', '.join([v for v, _ in ranked_vendors[:3]])}",
-            f"📊 Request detailed TCO analysis from shortlisted vendors",
+            "📊 Request detailed TCO analysis from shortlisted vendors",
             f"✅ Prioritize {ranked_vendors[0][1]['best_for']} alignment with your use case"
         ])
         
@@ -452,21 +452,21 @@ Be concise and actionable."""
         capabilities = []
         if 'customer_acquisition' in issues:
             capabilities.extend([
-                f"Advanced analytics for CAC optimization and channel performance tracking",
-                f"Integrated marketing automation to reduce acquisition costs by 20-30%",
-                f"AI-powered lead scoring to focus on high-conversion prospects"
+                "Advanced analytics for CAC optimization and channel performance tracking",
+                "Integrated marketing automation to reduce acquisition costs by 20-30%",
+                "AI-powered lead scoring to focus on high-conversion prospects"
             ])
         if 'pricing' in issues:
             capabilities.extend([
-                f"Dynamic pricing engine with usage-based and value-based models",
-                f"A/B testing capabilities for pricing experiments across segments",
-                f"Competitive pricing intelligence and benchmarking tools"
+                "Dynamic pricing engine with usage-based and value-based models",
+                "A/B testing capabilities for pricing experiments across segments",
+                "Competitive pricing intelligence and benchmarking tools"
             ])
         if 'growth' in issues:
             capabilities.extend([
-                f"Product-led growth features to drive viral adoption",
+                "Product-led growth features to drive viral adoption",
                 f"Multi-geography support with localization for {industry} markets",
-                f"Scalable infrastructure to support 10x growth trajectories"
+                "Scalable infrastructure to support 10x growth trajectories"
             ])
         
         # Fallback to generic if no issues detected
