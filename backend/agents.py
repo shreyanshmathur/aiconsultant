@@ -3,6 +3,7 @@ import os
 from groq import Groq
 import google.generativeai as genai
 import requests
+import random
 
 class ConsultantAgent:
     """Base class for consultant agents"""
@@ -18,13 +19,25 @@ class ConsultantAgent:
         """Generate a response based on context and previous arguments"""
         raise NotImplementedError
 
+def get_api_key_from_pool(key_type: str) -> str:
+    """Get an API key from the pool with rotation"""
+    if key_type == 'openrouter':
+        keys = os.getenv('OPENROUTER_API_KEYS', '').split(',')
+    elif key_type == 'groq':
+        keys = os.getenv('GROQ_API_KEYS', '').split(',')
+    else:
+        return os.getenv(f'{key_type.upper()}_API_KEY', '')
+    
+    keys = [k.strip() for k in keys if k.strip()]
+    return random.choice(keys) if keys else ''
+
 class OpenRouterAgent(ConsultantAgent):
     """Agent that uses OpenRouter API"""
     
     def generate_response(self, context: str, previous_arguments: List[Dict] = None) -> str:
-        api_key = os.getenv('OPENROUTER_API_KEY', '')
+        api_key = get_api_key_from_pool('openrouter')
         if not api_key:
-            return f"[{self.name}] API key not configured. Please add OPENROUTER_API_KEY to settings."
+            return f"[{self.name}] API key not configured."
         
         prompt = self._build_prompt(context, previous_arguments)
         
@@ -39,7 +52,8 @@ class OpenRouterAgent(ConsultantAgent):
                     "messages": [{"role": "user", "content": prompt}],
                     "max_tokens": 800,
                     "temperature": 0.7
-                }
+                },
+                timeout=30
             )
             response.raise_for_status()
             return response.json()['choices'][0]['message']['content']
