@@ -110,6 +110,7 @@ Be concise and actionable."""
             if response.status_code == 200:
                 ai_text = response.json()['choices'][0]['message']['content']
                 print(f"✅ AI response received: {len(ai_text)} chars")
+                print(f"🔍 Preview: {ai_text[:200]}...")
                 return self._structure_response(vendor_name, industry, problem, ai_text)
             else:
                 print(f"⚠️ AI API returned {response.status_code}, using intelligent fallback")
