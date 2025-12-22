@@ -66,38 +66,32 @@ class FastAIResearch:
         return defaults.get(industry, 'SAP')
     
     async def _ai_analyze(self, vendor_name: str, industry: str, problem: str, additional_context: str = None) -> Dict:
-        """Fast AI analysis"""
+        """Fast AI analysis with intelligent fallback"""
         
-        # Build comprehensive prompt
-        prompt = f"""You are a McKinsey consultant analyzing a business problem. Provide a detailed, data-driven analysis.
+        # Build concise prompt
+        prompt = f"""Analyze this business problem as a McKinsey consultant:
 
-PROBLEM STATEMENT:
-{problem}
-
-TARGET VENDOR: {vendor_name}
+PROBLEM: {problem}
+VENDOR: {vendor_name}
 INDUSTRY: {industry}
-"""
-        
-        if additional_context:
-            prompt += f"\\n\\nADDITIONAL CONTEXT:\\n{additional_context}\\n"
-        
-        prompt += """
+{f'CONTEXT: {additional_context[:500]}' if additional_context else ''}
 
-Please analyze:
-1. Market Position & Competitive Landscape
-2. Key Capabilities & Differentiators  
-3. Strategic Recommendations (5 specific actions)
-4. Implementation Considerations
-5. Risk Factors
+Provide:
+1. Market Position (2 sentences)
+2. Key Capabilities (5 bullets)
+3. Recommendations (5 specific actions)
+4. Risks (3 items)
 
-Format your response clearly with headers and bullet points. Be specific and actionable."""
+Be concise and actionable."""
         
-        # Call AI
+        # Try AI with fast model and short timeout
         try:
             api_key = get_api_key_from_pool('openrouter')
             if not api_key:
-                return self._fallback_response(vendor_name, industry, problem)
+                print("⚠️ No API key, using intelligent fallback")
+                return self._intelligent_fallback(vendor_name, industry, problem, additional_context)
             
+            print(f"🤖 Calling AI with Llama 3.3...")
             response = requests.post(
                 url="https://openrouter.ai/api/v1/chat/completions",
                 headers={
@@ -105,24 +99,28 @@ Format your response clearly with headers and bullet points. Be specific and act
                     "Content-Type": "application/json"
                 },
                 json={
-                    "model": "deepseek/deepseek-v3.2-speciale",
+                    "model": "meta-llama/llama-3.3-70b-instruct",  # Faster model
                     "messages": [{"role": "user", "content": prompt}],
-                    "max_tokens": 2000,
+                    "max_tokens": 1000,  # Reduced for speed
                     "temperature": 0.7
                 },
-                timeout=30
+                timeout=12  # Short timeout
             )
             
             if response.status_code == 200:
                 ai_text = response.json()['choices'][0]['message']['content']
+                print(f"✅ AI response received: {len(ai_text)} chars")
                 return self._structure_response(vendor_name, industry, problem, ai_text)
             else:
-                print(f"AI API error: {response.status_code}")
-                return self._fallback_response(vendor_name, industry, problem)
+                print(f"⚠️ AI API returned {response.status_code}, using intelligent fallback")
+                return self._intelligent_fallback(vendor_name, industry, problem, additional_context)
                 
+        except requests.exceptions.Timeout:
+            print("⏱️ AI timeout, using intelligent fallback")
+            return self._intelligent_fallback(vendor_name, industry, problem, additional_context)
         except Exception as e:
-            print(f"AI error: {e}")
-            return self._fallback_response(vendor_name, industry, problem)
+            print(f"⚠️ AI error: {e}, using intelligent fallback")
+            return self._intelligent_fallback(vendor_name, industry, problem, additional_context)
     
     def _structure_response(self, vendor: str, industry: str, problem: str, ai_text: str) -> Dict:
         """Structure AI response"""
