@@ -1,28 +1,52 @@
 import "@/index.css";
 import "@/App.css";
-import "@/enhanced.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
+import { AuthProvider } from "./contexts/AuthContext";
+import { ThemeProvider } from "./contexts/ThemeContext";
+import AuthCallback from "./components/AuthCallback";
+import Navbar from "./components/Navbar";
+import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
 import Research from "./pages/Research";
 import Consulting from "./pages/Consulting";
 import Deliverables from "./pages/Deliverables";
-import Settings from "./pages/Settings";
 
-function App() {
+// Router wrapper to handle auth callback
+function AppRouter() {
+  const location = useLocation();
+  
+  // Check URL fragment for session_id (synchronous check during render)
+  if (location.hash?.includes('session_id=')) {
+    return <AuthCallback />;
+  }
+  
   return (
-    <div className="App">
-      <BrowserRouter>
+    <>
+      <Navbar />
+      <div className="pt-16"> {/* Offset for fixed navbar */}
         <Routes>
-          <Route path="/" element={<Dashboard />} />
+          <Route path="/" element={<Landing />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/research" element={<Research />} />
           <Route path="/consulting" element={<Consulting />} />
           <Route path="/deliverables" element={<Deliverables />} />
-          <Route path="/settings" element={<Settings />} />
         </Routes>
-      </BrowserRouter>
-      <Toaster />
-    </div>
+      </div>
+    </>
+  );
+}
+
+function App() {
+  return (
+    <ThemeProvider>
+      <AuthProvider>
+        <BrowserRouter>
+          <AppRouter />
+        </BrowserRouter>
+        <Toaster />
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 
