@@ -9,7 +9,7 @@ class FastAIResearch:
     """Fast AI research with minimal API calls"""
     
     async def research(self, problem: str, vendor_name: str = None, industry: str = None, additional_context: str = None) -> Dict:
-        """Conduct fast AI-powered research"""
+        """Conduct fast AI-powered research with vendor comparison"""
         
         # Step 1: Quick auto-detection
         if not industry:
@@ -20,10 +20,28 @@ class FastAIResearch:
         
         print(f"🔍 Fast research: {vendor_name} in {industry}")
         
-        # Step 2: Build context and get AI analysis
-        analysis = await self._ai_analyze(vendor_name, industry, problem, additional_context)
+        # Step 2: Get competitor list
+        competitors = self._get_competitors(vendor_name)[:4]  # Top 4 competitors
+        all_vendors = [vendor_name] + competitors
         
-        return analysis
+        print(f"📊 Comparing {len(all_vendors)} vendors: {', '.join(all_vendors)}")
+        
+        # Step 3: Analyze primary vendor with AI
+        primary_analysis = await self._ai_analyze(vendor_name, industry, problem, additional_context)
+        
+        # Step 4: Compare all vendors
+        comparison = await self._compare_vendors(all_vendors, industry, problem)
+        
+        # Step 5: Generate recommendations and execute scoring
+        final_result = await self._generate_comparison_results(
+            primary_vendor=vendor_name,
+            primary_analysis=primary_analysis,
+            comparison=comparison,
+            industry=industry,
+            problem=problem
+        )
+        
+        return final_result
     
     def _quick_detect_industry(self, problem: str) -> str:
         """Quick industry detection"""
