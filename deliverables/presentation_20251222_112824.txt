@@ -1,0 +1,7 @@
+===== Growth Strategy Presentation =====
+
+Problem: SaaS company growth
+
+Recommendations: 1. Optimize pricing 2. Reduce CAC
+
+===== End of Presentation =====
