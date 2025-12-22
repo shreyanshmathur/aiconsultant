@@ -126,7 +126,7 @@ class GeminiAgent(ConsultantAgent):
     def generate_response(self, context: str, previous_arguments: List[Dict] = None) -> str:
         api_key = os.getenv('GEMINI_API_KEY', '')
         if not api_key:
-            return f"[{self.name}] API key not configured. Please add GEMINI_API_KEY to settings."
+            return f"[{self.name}] API key not configured."
         
         prompt = self._build_prompt(context, previous_arguments)
         
