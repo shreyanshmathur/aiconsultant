@@ -167,7 +167,7 @@ class DeliverableService:
             else:
                 # Fallback to text-based presentation
                 return await self._generate_ppt_fallback(content)
-        except Exception as e:
+        except Exception:
             # Fallback to text-based presentation
             return await self._generate_ppt_fallback(content)
     
