@@ -54,7 +54,7 @@ const ParticleBackground = () => {
 
     // Initialize particles
     for (let i = 0; i < particleCount; i++) {
-      particles.push(new Particle());
+      particles.push(new Particle(canvas, ctx));
     }
 
     // Animation loop
