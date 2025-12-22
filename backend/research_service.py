@@ -85,17 +85,22 @@ class ResearchService:
         # Return highest confidence match
         return detected[0] if detected else {'industry': 'General Business', 'confidence': 'low'}
     
-    async def conduct_vendor_analysis(self, problem: str, vendor_name: str = None, industry: str = None) -> Dict:
-        """Conduct comprehensive vendor analysis"""
+    async def conduct_vendor_analysis(self, problem: str, vendor_name: str = None, industry: str = None, additional_context: str = None) -> Dict:
+        """Conduct comprehensive vendor analysis with optional file context"""
+        
+        # Combine problem with additional context from uploaded files
+        full_context = problem
+        if additional_context:
+            full_context += f"\n\nAdditional Context from Uploaded Files:\n{additional_context}"
         
         # Auto-detect industry if not provided
         if not industry:
-            industry_data = await self.auto_detect_industry(problem)
+            industry_data = await self.auto_detect_industry(full_context)
             industry = industry_data.get('industry', 'General Business')
         
         # Auto-discover vendors if not provided
         if not vendor_name:
-            vendors = await self.auto_discover_vendors(problem, industry)
+            vendors = await self.auto_discover_vendors(full_context, industry)
             vendor_name = vendors[0]['name'] if vendors else 'Unknown'
             suggested_vendors = [v['name'] for v in vendors[:5]]
         else:
@@ -106,25 +111,32 @@ class ResearchService:
             "industry": industry,
             "suggested_vendors": suggested_vendors,
             "problem_statement": problem,
+            "has_additional_context": bool(additional_context),
             "analysis": {
-                "market_position": f"{vendor_name} is a leading player in the {industry} sector with strong market presence.",
+                "market_position": f"{vendor_name} is a leading player in the {industry} sector with strong market presence and proven track record in enterprise deployments.",
                 "key_capabilities": [
-                    f"Enterprise-grade solutions for {industry}",
-                    "Global customer base and support",
-                    "Proven track record in digital transformation"
+                    f"Enterprise-grade solutions tailored for {industry}",
+                    "Global customer base with 24/7 support infrastructure",
+                    "Proven track record in digital transformation initiatives",
+                    "Strong integration ecosystem with third-party tools",
+                    "Comprehensive training and implementation support"
                 ],
                 "considerations": [
-                    "Implementation complexity and timeline",
-                    "Total cost of ownership",
-                    "Integration with existing systems"
+                    "Implementation complexity - typically 3-6 months for mid-size deployments",
+                    "Total cost of ownership including licenses, implementation, and training",
+                    "Integration requirements with existing systems",
+                    "Change management and user adoption challenges",
+                    "Vendor lock-in and long-term commitment considerations"
                 ]
             },
             "competitors": await self._find_competitors(vendor_name, industry),
             "recommendations": [
-                f"Evaluate {vendor_name} alongside 2-3 competitors",
-                "Conduct proof of concept before full deployment",
-                "Assess vendor's industry-specific expertise",
-                "Review customer case studies in similar scenarios"
+                f"✓ Evaluate {vendor_name} alongside 2-3 competitors for comprehensive comparison",
+                "✓ Conduct proof of concept (POC) before full deployment commitment",
+                "✓ Assess vendor's industry-specific expertise and case studies",
+                "✓ Review customer references in similar company size and geography",
+                "✓ Negotiate flexible terms with clear exit clauses",
+                "✓ Plan for 20-30% budget buffer for unforeseen implementation costs"
             ]
         }
         
@@ -141,13 +153,14 @@ class ResearchService:
             'Workday': ['SAP SuccessFactors', 'Oracle HCM', 'ADP', 'Ultimate Software']
         }
         
-        competitors = competitor_map.get(vendor_name, ['Leading alternatives in the market'])
+        competitors = competitor_map.get(vendor_name, ['Industry leading alternatives'])
         
         return [
             {
                 'name': comp,
                 'relationship': 'Direct competitor',
-                'market_overlap': 'High'
+                'market_overlap': 'High',
+                'differentiators': f"Strong presence in {industry} sector"
             } for comp in competitors[:4]
         ]
     

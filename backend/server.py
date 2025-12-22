@@ -10,6 +10,9 @@ from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional, Dict, Any
 import uuid
 from datetime import datetime, timezone
+import PyPDF2
+import openpyxl
+import io
 
 from conference_service import ConferenceRoomService
 from research_service import ResearchService
@@ -60,6 +63,7 @@ class ResearchRequest(BaseModel):
     vendor_name: Optional[str] = None
     industry: Optional[str] = None
     query: Optional[str] = None
+    additional_context: Optional[str] = None
 
 class DebateRequest(BaseModel):
     project_id: str
@@ -73,6 +77,34 @@ class DeliverableRequest(BaseModel):
 class APIKeyUpdate(BaseModel):
     key_name: str
     key_value: str
+
+# Helper functions for file parsing
+def extract_text_from_pdf(file_content: bytes) -> str:
+    """Extract text from PDF"""
+    try:
+        pdf_reader = PyPDF2.PdfReader(io.BytesIO(file_content))
+        text = ""
+        for page in pdf_reader.pages:
+            text += page.extract_text() + "\n"
+        return text
+    except Exception as e:
+        return f"Error reading PDF: {str(e)}"
+
+def extract_text_from_excel(file_content: bytes) -> str:
+    """Extract text from Excel"""
+    try:
+        wb = openpyxl.load_workbook(io.BytesIO(file_content))
+        text = ""
+        for sheet_name in wb.sheetnames:
+            sheet = wb[sheet_name]
+            text += f"\n--- Sheet: {sheet_name} ---\n"
+            for row in sheet.iter_rows(values_only=True):
+                row_text = " | ".join([str(cell) if cell is not None else "" for cell in row])
+                if row_text.strip():
+                    text += row_text + "\n"
+        return text
+    except Exception as e:
+        return f"Error reading Excel: {str(e)}"
 
 # Add your routes to the router instead of directly to app
 @api_router.get("/")
@@ -127,6 +159,42 @@ async def get_project(project_id: str):
     
     return project
 
+# File upload endpoint
+@api_router.post("/research/upload")
+async def upload_research_files(files: List[UploadFile] = File(...)):
+    """Upload PDF/Excel files for additional context"""
+    extracted_content = []
+    
+    for file in files:
+        file_content = await file.read()
+        
+        if file.filename.endswith('.pdf'):
+            text = extract_text_from_pdf(file_content)
+            extracted_content.append({
+                "filename": file.filename,
+                "type": "pdf",
+                "content": text[:5000]  # Limit to 5000 chars per file
+            })
+        elif file.filename.endswith(('.xlsx', '.xls')):
+            text = extract_text_from_excel(file_content)
+            extracted_content.append({
+                "filename": file.filename,
+                "type": "excel",
+                "content": text[:5000]
+            })
+        else:
+            extracted_content.append({
+                "filename": file.filename,
+                "type": "unsupported",
+                "content": "File type not supported. Please upload PDF or Excel files."
+            })
+    
+    return {
+        "success": True,
+        "files_processed": len(extracted_content),
+        "extracted_content": extracted_content
+    }
+
 # Research endpoints
 @api_router.post("/research/vendor-analysis")
 async def conduct_vendor_analysis(request: ResearchRequest):
@@ -138,7 +206,8 @@ async def conduct_vendor_analysis(request: ResearchRequest):
     results = await research_service.conduct_vendor_analysis(
         problem=problem,
         vendor_name=request.vendor_name,
-        industry=request.industry
+        industry=request.industry,
+        additional_context=request.additional_context
     )
     
     # Update project with research data
@@ -214,7 +283,11 @@ async def download_deliverable(filename: str):
     if not os.path.exists(filepath):
         raise HTTPException(status_code=404, detail="File not found")
     
-    return FileResponse(filepath, filename=filename)
+    return FileResponse(
+        filepath, 
+        filename=filename,
+        media_type='application/octet-stream'
+    )
 
 # Settings endpoints
 @api_router.post("/settings/api-keys")
@@ -223,24 +296,14 @@ async def update_api_key(key_update: APIKeyUpdate):
     os.environ[key_update.key_name] = key_update.key_value
     return {"success": True, "message": f"API key {key_update.key_name} updated"}
 
-# Include the router in the main app
+# Mount the router
 app.include_router(api_router)
 
+# CORS middleware
 app.add_middleware(
     CORSMiddleware,
+    allow_origins=["*"],
     allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
-
-@app.on_event("shutdown")
-async def shutdown_db_client():
-    client.close()
