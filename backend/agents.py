@@ -130,14 +130,14 @@ class GeminiAgent(ConsultantAgent):
         # Fallback response if Gemini not available
         return f"[{self.name}] Customer perspective: Understanding Tier 2/3 markets and Bharat segment is crucial. Focus on trust-building, vernacular support, and addressing ground realities. The current pricing may not resonate with diverse customer segments across different regions."
 
-# Agent configurations with working model IDs
+# Agent configurations with unique free models
 AGENT_CONFIGS = [
     {
         "name": "PRIYA SHARMA",
         "role": "India Market Strategy Lead",
         "specialty": "Indian enterprise market, government projects, budget constraints, cultural nuances",
         "personality": "Authoritative, culturally aware, relationship-focused, pragmatic about Indian business realities",
-        "model": {"model": "meta-llama/llama-3.3-70b-instruct", "provider": "openrouter"},
+        "model": {"model": "meta-llama/llama-4-maverick:free", "provider": "openrouter"},
         "avatar_url": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&h=200&fit=crop"
     },
     {
@@ -145,7 +145,7 @@ AGENT_CONFIGS = [
         "role": "Technology Architect (India Stack)",
         "specialty": "India Stack (UPI, Aadhaar), massive scale systems, mobile-first, low-bandwidth optimization",
         "personality": "Technical, pragmatic, focused on frugal innovation and cost optimization",
-        "model": {"model": "meta-llama/llama-3.2-3b-instruct:free", "provider": "openrouter"},
+        "model": {"model": "mistralai/devstral-small:free", "provider": "openrouter"},
         "avatar_url": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop"
     },
     {
@@ -161,7 +161,7 @@ AGENT_CONFIGS = [
         "role": "SaaS & Product Strategy",
         "specialty": "SaaS for Indian SMBs, pricing models, payment integration, freemium strategies",
         "personality": "Product-minded, data-driven, understands Indian SMB psychology",
-        "model": {"model": "mistralai/mistral-7b-instruct:free", "provider": "openrouter"},
+        "model": {"model": "mistralai/mistral-small-3.1-24b-instruct:free", "provider": "openrouter"},
         "avatar_url": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop"
     },
     {
@@ -169,7 +169,7 @@ AGENT_CONFIGS = [
         "role": "Data & AI Specialist",
         "specialty": "AI for Indian languages, recommendation systems, computer vision, fraud detection",
         "personality": "Analytical, detail-oriented, focused on data quality and practical AI",
-        "model": {"model": "nvidia/nemotron-nano-9b-v2:free", "provider": "openrouter"},
+        "model": {"model": "qwen/qwen3-235b-a22b:free", "provider": "openrouter"},
         "avatar_url": "https://images.unsplash.com/photo-1594824476967-48c8b964273f?w=200&h=200&fit=crop"
     },
     {
@@ -177,7 +177,7 @@ AGENT_CONFIGS = [
         "role": "Security & Compliance (India)",
         "specialty": "RBI, SEBI, IRDAI regulations, payment security, UPI security",
         "personality": "Risk-averse, thorough, focused on compliance",
-        "model": {"model": "meta-llama/llama-3.3-70b-instruct", "provider": "openrouter"},
+        "model": {"model": "deepseek/deepseek-chat-v3-0324:free", "provider": "openrouter"},
         "avatar_url": "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=200&h=200&fit=crop"
     },
     {
@@ -185,7 +185,7 @@ AGENT_CONFIGS = [
         "role": "Customer & Market Insights",
         "specialty": "Tier 2/3 cities, Bharat market, customer behavior, trust-building",
         "personality": "Empathetic, customer-obsessed, focused on ground realities",
-        "model": {"model": "llama-3.3-70b-versatile", "provider": "groq"},
+        "model": {"model": "llama-3.1-8b-instant", "provider": "groq"},
         "avatar_url": "https://images.unsplash.com/photo-1551836022-deb4988cc6c0?w=200&h=200&fit=crop"
     },
     {
@@ -193,7 +193,7 @@ AGENT_CONFIGS = [
         "role": "The Reality Check (Startup Veteran)",
         "specialty": "Execution challenges, budget realities, failure prevention",
         "personality": "Skeptical, direct, focused on identifying risks",
-        "model": {"model": "openai/gpt-oss-20b:free", "provider": "openrouter"},
+        "model": {"model": "deepseek/deepseek-r1:free", "provider": "openrouter"},
         "avatar_url": "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=200&h=200&fit=crop"
     }
 ]
