@@ -169,7 +169,7 @@ AGENT_CONFIGS = [
         "role": "Data & AI Specialist",
         "specialty": "AI for Indian languages, recommendation systems, computer vision, fraud detection",
         "personality": "Analytical, detail-oriented, focused on data quality and practical AI",
-        "model": {"model": "allenai/olmo-3.1-32b-think:free", "provider": "openrouter"},
+        "model": {"model": "meta-llama/llama-4-maverick-17b-128e-instruct", "provider": "groq"},
         "avatar_url": "https://images.unsplash.com/photo-1594824476967-48c8b964273f?w=200&h=200&fit=crop"
     },
     {
@@ -177,7 +177,7 @@ AGENT_CONFIGS = [
         "role": "Security & Compliance (India)",
         "specialty": "RBI, SEBI, IRDAI regulations, payment security, UPI security",
         "personality": "Risk-averse, thorough, focused on compliance",
-        "model": {"model": "nvidia/nemotron-3-nano-30b-a3b:free", "provider": "openrouter"},
+        "model": {"model": "meta-llama/llama-4-scout-17b-16e-instruct", "provider": "groq"},
         "avatar_url": "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=200&h=200&fit=crop"
     },
     {
@@ -193,7 +193,7 @@ AGENT_CONFIGS = [
         "role": "The Reality Check (Startup Veteran)",
         "specialty": "Execution challenges, budget realities, failure prevention",
         "personality": "Skeptical, direct, focused on identifying risks",
-        "model": {"model": "arcee-ai/trinity-mini:free", "provider": "openrouter"},
+        "model": {"model": "openai/gpt-oss-20b", "provider": "groq"},
         "avatar_url": "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=200&h=200&fit=crop"
     }
 ]
