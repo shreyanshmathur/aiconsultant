@@ -421,13 +421,20 @@ async def generate_excel(request_data: DeliverableRequest):
 
 @api_router.post("/deliverables/ppt")
 async def generate_ppt(request_data: DeliverableRequest):
-    """Generate PPT deliverable via Gamma"""
-    result = await deliverable_service.generate_ppt_via_gamma(request_data.content)
-    
-    if result['success']:
-        # Store the filename from the result
-        filename = result.get('presentation_id', result.get('filename', 'presentation.txt'))
-        
+    """Generate professional PowerPoint presentation"""
+    # Fetch project data to include debate and research data
+    project = await db.projects.find_one({"id": request_data.project_id})
+
+    content = request_data.content.copy()
+    if project:
+        content['debate_data'] = project.get('debate_data', {})
+        content['research_data'] = project.get('research_data', {})
+
+    result = await deliverable_service.generate_ppt(content)
+
+    if result.get('success'):
+        filename = result.get('filename', 'presentation.pptx')
+
         await db.projects.update_one(
             {"id": request_data.project_id},
             {
@@ -435,41 +442,167 @@ async def generate_ppt(request_data: DeliverableRequest):
                 "$set": {"updated_at": datetime.now(timezone.utc).isoformat()}
             }
         )
-    
+
     return result
+
+@api_router.post("/deliverables/pdf")
+async def generate_pdf(request_data: DeliverableRequest):
+    """Generate professional PDF report"""
+    # Fetch project data to include debate and research data
+    project = await db.projects.find_one({"id": request_data.project_id})
+
+    content = request_data.content.copy()
+    if project:
+        content['debate_data'] = project.get('debate_data', {})
+        content['research_data'] = project.get('research_data', {})
+
+    result = await deliverable_service.generate_pdf(content)
+
+    if result.get('success'):
+        filename = result.get('filename', 'report.pdf')
+
+        await db.projects.update_one(
+            {"id": request_data.project_id},
+            {
+                "$push": {"deliverables": filename},
+                "$set": {"updated_at": datetime.now(timezone.utc).isoformat()}
+            }
+        )
+
+    return result
+
+@api_router.post("/deliverables/all")
+async def generate_all_deliverables(request_data: DeliverableRequest):
+    """Generate all deliverables (Excel, PPT, PDF) for a project"""
+    # Fetch project data
+    project = await db.projects.find_one({"id": request_data.project_id})
+
+    content = request_data.content.copy()
+    if project:
+        content['debate_data'] = project.get('debate_data', {})
+        content['research_data'] = project.get('research_data', {})
+
+    results = {
+        "excel": None,
+        "ppt": None,
+        "pdf": None,
+        "success": True
+    }
+
+    # Generate Excel
+    try:
+        excel_filename = deliverable_service.generate_excel_report(content, request_data.deliverable_type)
+        results["excel"] = {"filename": excel_filename, "success": True}
+    except Exception as e:
+        results["excel"] = {"success": False, "error": str(e)}
+
+    # Generate PPT
+    try:
+        ppt_result = await deliverable_service.generate_ppt(content)
+        results["ppt"] = ppt_result
+    except Exception as e:
+        results["ppt"] = {"success": False, "error": str(e)}
+
+    # Generate PDF
+    try:
+        pdf_result = await deliverable_service.generate_pdf(content)
+        results["pdf"] = pdf_result
+    except Exception as e:
+        results["pdf"] = {"success": False, "error": str(e)}
+
+    # Update project with all deliverables
+    deliverable_filenames = []
+    if results["excel"] and results["excel"].get("success"):
+        deliverable_filenames.append(results["excel"]["filename"])
+    if results["ppt"] and results["ppt"].get("success"):
+        deliverable_filenames.append(results["ppt"].get("filename"))
+    if results["pdf"] and results["pdf"].get("success"):
+        deliverable_filenames.append(results["pdf"].get("filename"))
+
+    if deliverable_filenames:
+        await db.projects.update_one(
+            {"id": request_data.project_id},
+            {
+                "$push": {"deliverables": {"$each": deliverable_filenames}},
+                "$set": {"updated_at": datetime.now(timezone.utc).isoformat()}
+            }
+        )
+
+    return results
 
 @api_router.get("/deliverables/{filename}")
 async def download_deliverable(filename: str):
     """Download a deliverable file"""
-    filepath = f"/app/deliverables/{filename}"
-    
-    if not os.path.exists(filepath):
+    # Try multiple possible paths
+    possible_paths = [
+        f"/home/user/aiconsultant/deliverables/{filename}",
+        f"/app/deliverables/{filename}"
+    ]
+
+    filepath = None
+    for path in possible_paths:
+        if os.path.exists(path):
+            filepath = path
+            break
+
+    if not filepath:
         raise HTTPException(status_code=404, detail="File not found")
-    
+
+    # Determine media type based on extension
+    media_types = {
+        '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        '.pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        '.pdf': 'application/pdf',
+        '.html': 'text/html'
+    }
+
+    ext = os.path.splitext(filename)[1].lower()
+    media_type = media_types.get(ext, 'application/octet-stream')
+
     return FileResponse(
-        filepath, 
+        filepath,
         filename=filename,
-        media_type='application/octet-stream'
+        media_type=media_type
     )
 
 # Get all deliverables for listing
 @api_router.get("/deliverables")
 async def list_deliverables():
     """List all available deliverable files"""
-    deliverables_dir = "/app/deliverables"
-    if not os.path.exists(deliverables_dir):
+    possible_dirs = [
+        "/home/user/aiconsultant/deliverables",
+        "/app/deliverables"
+    ]
+
+    deliverables_dir = None
+    for dir_path in possible_dirs:
+        if os.path.exists(dir_path):
+            deliverables_dir = dir_path
+            break
+
+    if not deliverables_dir:
         return {"files": []}
-    
+
     files = []
     for f in os.listdir(deliverables_dir):
         filepath = os.path.join(deliverables_dir, f)
         if os.path.isfile(filepath):
+            ext = os.path.splitext(f)[1].lower()
+            file_type = {
+                '.xlsx': 'Excel',
+                '.pptx': 'PowerPoint',
+                '.pdf': 'PDF',
+                '.html': 'HTML',
+                '.txt': 'Text'
+            }.get(ext, 'Unknown')
+
             files.append({
                 "filename": f,
                 "size": os.path.getsize(filepath),
+                "type": file_type,
                 "created": datetime.fromtimestamp(os.path.getctime(filepath)).isoformat()
             })
-    
+
     return {"files": sorted(files, key=lambda x: x['created'], reverse=True)}
 
 # Settings endpoints
