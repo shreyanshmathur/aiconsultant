@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: aiconsultant-api
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn server:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11"
+      - key: MONGO_URL
+        sync: false
+      - key: DB_NAME
+        value: aiconsultant
+      - key: OPENROUTER_API_KEYS
+        sync: false
+      - key: GROQ_API_KEYS
+        sync: false
+      - key: GOOGLE_GEMINI_API_KEY
+        sync: false
+      - key: GAMMA_API_KEY
+        sync: false

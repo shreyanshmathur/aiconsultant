@@ -64,6 +64,9 @@ chainlit.md
 # Data and databases
 agenthub/agents/youtube/db
 
+# Generated deliverables
+deliverables/
+
 # Archive files and large assets
 **/*.zip
 **/*.tar.gz
@@ -77,11 +80,9 @@ agenthub/agents/youtube/db
 .cache/
 
 # Mobile development
-android-sdk/ -e 
+android-sdk/
+
 # Environment files
 *.env
 *.env.*
--e 
-# Environment files
-*.env
-*.env.*
+!*.env.example
