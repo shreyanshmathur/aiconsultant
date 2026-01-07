@@ -421,7 +421,7 @@ async def generate_excel(request_data: DeliverableRequest):
 
 @api_router.post("/deliverables/ppt")
 async def generate_ppt(request_data: DeliverableRequest):
-    """Generate professional PowerPoint presentation"""
+    """Generate professional PowerPoint presentation using Gamma AI"""
     # Fetch project data to include debate and research data
     project = await db.projects.find_one({"id": request_data.project_id})
 
@@ -430,15 +430,17 @@ async def generate_ppt(request_data: DeliverableRequest):
         content['debate_data'] = project.get('debate_data', {})
         content['research_data'] = project.get('research_data', {})
 
-    result = await deliverable_service.generate_ppt(content)
+    # Use Gamma API for professional presentations (falls back to python-pptx)
+    result = await deliverable_service.generate_ppt_via_gamma(content)
 
     if result.get('success'):
-        filename = result.get('filename', 'presentation.pptx')
+        # For Gamma presentations, store the URL; for local, store filename
+        deliverable_info = result.get('presentation_url') or result.get('filename', 'presentation.pptx')
 
         await db.projects.update_one(
             {"id": request_data.project_id},
             {
-                "$push": {"deliverables": filename},
+                "$push": {"deliverables": deliverable_info},
                 "$set": {"updated_at": datetime.now(timezone.utc).isoformat()}
             }
         )
@@ -496,9 +498,9 @@ async def generate_all_deliverables(request_data: DeliverableRequest):
     except Exception as e:
         results["excel"] = {"success": False, "error": str(e)}
 
-    # Generate PPT
+    # Generate PPT using Gamma AI
     try:
-        ppt_result = await deliverable_service.generate_ppt(content)
+        ppt_result = await deliverable_service.generate_ppt_via_gamma(content)
         results["ppt"] = ppt_result
     except Exception as e:
         results["ppt"] = {"success": False, "error": str(e)}
@@ -515,7 +517,10 @@ async def generate_all_deliverables(request_data: DeliverableRequest):
     if results["excel"] and results["excel"].get("success"):
         deliverable_filenames.append(results["excel"]["filename"])
     if results["ppt"] and results["ppt"].get("success"):
-        deliverable_filenames.append(results["ppt"].get("filename"))
+        # Handle both Gamma URLs and local filenames
+        ppt_deliverable = results["ppt"].get("presentation_url") or results["ppt"].get("filename")
+        if ppt_deliverable:
+            deliverable_filenames.append(ppt_deliverable)
     if results["pdf"] and results["pdf"].get("success"):
         deliverable_filenames.append(results["pdf"].get("filename"))
 

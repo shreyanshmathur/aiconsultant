@@ -682,8 +682,130 @@ Format as JSON with "verified_claims" array containing objects with "original", 
     # ==================== LEGACY METHODS (for backward compatibility) ====================
 
     async def generate_ppt_via_gamma(self, content: Dict) -> Dict:
-        """Generate PPT - now uses python-pptx instead of Gamma"""
-        return await self.generate_ppt(content)
+        """Generate professional presentation using Gamma API"""
+        if not self.gamma_api_key:
+            # Fallback to python-pptx if no Gamma API key
+            return await self.generate_ppt(content)
+
+        try:
+            title = content.get('title', 'Consulting Report')
+            text = content.get('text', '')
+            debate_data = content.get('debate_data', {})
+
+            # Build rich content for Gamma
+            presentation_content = f"""# {title}
+
+## Executive Summary
+{debate_data.get('consensus', {}).get('summary', 'Strategic consulting analysis and recommendations.')}
+
+## The Challenge
+{text[:1500] if text else 'Business challenge requiring strategic analysis.'}
+
+## Key Insights
+{chr(10).join(['• ' + insight for insight in debate_data.get('consensus', {}).get('key_insights', ['Market analysis completed', 'Strategic opportunities identified', 'Risk assessment performed'])[:5]])}
+
+## Recommendations
+{chr(10).join(['• ' + rec for rec in debate_data.get('consensus', {}).get('recommendations', ['Implement phased approach', 'Focus on core competencies', 'Monitor KPIs regularly'])[:5]])}
+
+## Implementation Roadmap
+{chr(10).join(debate_data.get('consensus', {}).get('next_steps', ['Phase 1: Planning and Assessment', 'Phase 2: Implementation', 'Phase 3: Monitoring and Optimization'])[:5])}
+
+## Risk Factors
+{chr(10).join(['• ' + risk for risk in debate_data.get('consensus', {}).get('risk_factors', ['Market volatility', 'Resource constraints', 'Timeline pressures'])[:4]])}
+
+## Expected Impact
+• Growth Potential: {debate_data.get('consensus', {}).get('estimated_impact', {}).get('arr_growth', '15-25% improvement')}
+• Efficiency Gains: {debate_data.get('consensus', {}).get('estimated_impact', {}).get('cac_reduction', '20-30% optimization')}
+• Timeline: {debate_data.get('consensus', {}).get('estimated_impact', {}).get('timeline', '6-12 months')}
+
+## Next Steps
+• Schedule follow-up meeting
+• Begin Phase 1 implementation
+• Establish monitoring framework
+"""
+
+            # Call Gamma API
+            headers = {
+                "Content-Type": "application/json",
+                "X-API-KEY": self.gamma_api_key
+            }
+
+            payload = {
+                "inputText": presentation_content,
+                "textMode": "generate",
+                "format": "presentation",
+                "numCards": 10,
+                "cardSplit": "auto",
+                "cardOptions": {
+                    "dimensions": "16x9"
+                },
+                "textOptions": {
+                    "amount": "medium",
+                    "tone": "professional",
+                    "audience": "executives"
+                },
+                "imageOptions": {
+                    "source": "unsplash",
+                    "style": "professional"
+                },
+                "additionalInstructions": "Create a professional consulting presentation with clean design, executive-friendly visuals, and clear data visualization. Use a modern corporate color scheme."
+            }
+
+            # Start generation
+            response = requests.post(
+                "https://public-api.gamma.app/v1.0/generations",
+                headers=headers,
+                json=payload,
+                timeout=30
+            )
+
+            if response.status_code != 200 and response.status_code != 201:
+                print(f"Gamma API error: {response.status_code} - {response.text}")
+                return await self.generate_ppt(content)  # Fallback
+
+            result = response.json()
+            generation_id = result.get('generationId') or result.get('id')
+
+            if not generation_id:
+                return await self.generate_ppt(content)  # Fallback
+
+            # Poll for completion (max 60 seconds)
+            gamma_url = None
+            for _ in range(30):
+                await asyncio.sleep(2)
+
+                status_response = requests.get(
+                    f"https://public-api.gamma.app/v1.0/generations/{generation_id}",
+                    headers=headers,
+                    timeout=15
+                )
+
+                if status_response.status_code == 200:
+                    status_data = status_response.json()
+                    status = status_data.get('status', '')
+
+                    if status == 'completed' or status_data.get('gammaUrl'):
+                        gamma_url = status_data.get('gammaUrl') or status_data.get('url')
+                        break
+                    elif status == 'failed':
+                        return await self.generate_ppt(content)  # Fallback
+
+            if gamma_url:
+                return {
+                    "success": True,
+                    "presentation_url": gamma_url,
+                    "presentation_id": generation_id,
+                    "type": "gamma",
+                    "message": "Professional presentation created with Gamma AI"
+                }
+            else:
+                # Fallback to python-pptx
+                return await self.generate_ppt(content)
+
+        except Exception as e:
+            print(f"Gamma API error: {str(e)}")
+            # Fallback to python-pptx
+            return await self.generate_ppt(content)
 
     async def _generate_html_presentation(self, content: Dict) -> Dict:
         """Fallback to HTML if PPT generation fails"""
